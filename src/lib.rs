@@ -9,10 +9,13 @@ use serde::{Deserialize, Serialize};
 use std::mem;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;
+use chrono::{DateTime, TimeZone, Utc};
+
+mod util;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-1";
+const STORAGE_KEY: &str = "gymticks-2";
 
 type RouteId = Uuid;
 
@@ -304,10 +307,12 @@ fn view_routes(
     editing_route: &Option<EditingRoute>,
     editing_route_input: &ElRef<HtmlInputElement>,
 ) -> Node<Msg> {
+    let time = Utc.timestamp(unixTimestamp().into(), 0);
+
     ul![
         class!["route-list"],
         routes.iter().filter_map(|(route_id, route)| {
-            Some(view_route(route_id, route, editing_route, editing_route_input))
+            Some(view_route(route_id, route, editing_route, editing_route_input, &time))
         })
     ]
 }
@@ -317,6 +322,7 @@ fn view_route(
     route: &Route,
     editing_route: &Option<EditingRoute>,
     editing_route_input: &ElRef<HtmlInputElement>,
+    time: &DateTime<Utc>
 ) -> Node<Msg> {
     let num_sends = route.ticks.iter().fold(0i32, |acc, tick| {
        return match tick.typ {
@@ -368,7 +374,12 @@ fn view_route(
                 format!("{} ({})", route.ticks.len(), num_sends)
             ],
             label![
-                route.ticks.last().map_or_else(|| String::new(), |tick| format!("{}", tick.timestamp))
+                route.ticks.last().map_or_else(
+                    || String::new(),
+                    |tick| {
+                        format!("{}",util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time))
+                    }
+                )
             ],
             button![
                 class!["destroy"],
