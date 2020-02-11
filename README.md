@@ -6,7 +6,6 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 
 ## TODO
 
-- [ ] better mobile styles (disable zoom?)
 - [ ] retire route
 - [ ] add a note to a route
 - [ ] rearrange routes (drag or up/down buttons)
