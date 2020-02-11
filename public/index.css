@@ -174,7 +174,7 @@ body {
 }
 
 .route-list li .destroy {
-	display: none;
+	display: block;
 	position: absolute;
 	top: 0;
 	right: 10px;
@@ -193,10 +193,6 @@ body {
 
 .route-list li .destroy:after {
 	content: '×';
-}
-
-.route-list li:hover .destroy {
-	display: block;
 }
 
 .route-list li .edit {
