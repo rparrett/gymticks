@@ -17,16 +17,16 @@ const STORAGE_KEY: &str = "gymticks-1";
 type RouteId = Uuid;
 
 const COLORS: [&str; 10] = [
-    "#FF8C00", // orange
-    "#EB262D", // red
-    "#FF33E9", // pink
-    "#8836EB", // purple
-    "#3434FF", // blue
-    "#D2691E", // brown
-    "#FFF147", // yellow
-    "#53FF2f", // green
-    "#FFFFFF", // white
-    "#000000", // black
+    "orange",
+    "red",
+    "pink",
+    "purple",
+    "blue",
+    "brown",
+    "yellow",
+    "green",
+    "white",
+    "black",
 ];
 
 // ------ ------
@@ -266,21 +266,19 @@ fn view_header(
                 COLORS.iter().filter_map(|hex| {
                     Some(div![
                          class![
+                            hex.as_ref(),
                             "active" => chosen_color == hex
                          ],
-                         style! {
-                             St::BackgroundColor => hex
-                         },
                          ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
                     ])
                 })
             ],
             button![
                 id!("toggle-color"),
-                class!["toggle-color"],
-                style! {
-                    St::BackgroundColor => chosen_color
-                },
+                class![
+                    chosen_color.as_str(),
+                    "toggle-color"
+                ],
                 ev(Ev::Click, |_| Msg::ToggleChoosingColor()),
                 "❯"
             ],

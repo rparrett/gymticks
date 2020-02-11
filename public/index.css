@@ -128,6 +128,47 @@ body {
     border: 1px solid #eee;
 }
 
+.toggle-color.orange, .color-chooser .orange {
+    background-color: #FF8C00;
+    color: #ececec;
+}
+.toggle-color.red, .color-chooser .red {
+    background-color: #EB262D;
+    color: #ececec;
+}
+.toggle-color.pink, .color-chooser .pink {
+    background-color: #FF33E9;
+    color: #ececec;
+}
+.toggle-color.purple, .color-chooser .purple {
+    background-color: #8836EB;
+    color: #ececec;
+}
+.toggle-color.blue, .color-chooser .blue {
+    background-color: #3434FF;
+    color: #ececec;
+}
+.toggle-color.brown, .color-chooser .brown {
+    background-color: #D2691E;
+    color: #ececec;
+}
+.toggle-color.yellow, .color-chooser .yellow {
+    background-color: #FFF147;
+    color: #c7c7c7;
+}
+.toggle-color.green, .color-chooser .green {
+    background-color: #53FF2f;
+    color: #ececec;
+}
+.toggle-color.white, .color-chooser .white {
+    background-color: #FFFFFF;
+    color: #c7c7c7;
+}
+.toggle-color.black, .color-chooser .black {
+    background-color: #000000;
+    color: #ececec;
+}
+
 .route-list {
 	margin: 0;
 	padding: 0;
