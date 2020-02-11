@@ -21,3 +21,4 @@ This is a very specialized Todo app for keeping track of routes completed in a c
     - [ ] notes
 - [ ] organize routes into gym sections or categories?
 - [ ] display aggregate information about ticks
+- [ ] more dramatic button press feedback, especiall for attempts after send
