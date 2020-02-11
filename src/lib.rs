@@ -324,10 +324,10 @@ fn view_route(
     editing_route_input: &ElRef<HtmlInputElement>,
     time: &DateTime<Utc>
 ) -> Node<Msg> {
-    let num_sends = route.ticks.iter().fold(0i32, |acc, tick| {
+    let (num_sends, num_other) = route.ticks.iter().fold((0i32, 0i32), |acc, tick| {
        return match tick.typ {
-           TickType::Send => acc + 1,
-           _ => acc
+           TickType::Send => (acc.0 + 1, acc.1),
+           _ => (acc.0, acc.1 + 1)
        }
     });
 
@@ -353,7 +353,7 @@ fn view_route(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Send))
                 ),
-                "Tick"
+                "Snd"
             ],
             button![
                 class!["tick-button"],
@@ -371,7 +371,7 @@ fn view_route(
                 route.title
             ],
             label![
-                format!("{} ({})", route.ticks.len(), num_sends)
+                format!("{}", if num_sends > 0 {  num_sends } else { num_other })
             ],
             label![
                 route.ticks.last().map_or_else(
