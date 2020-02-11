@@ -1,3 +1,4 @@
+use chrono::{DateTime, TimeZone, Utc};
 use enclose::enc;
 use indexmap::IndexMap;
 use seed::{
@@ -9,7 +10,6 @@ use serde::{Deserialize, Serialize};
 use std::mem;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;
-use chrono::{DateTime, TimeZone, Utc};
 
 mod util;
 
@@ -20,16 +20,7 @@ const STORAGE_KEY: &str = "gymticks-2";
 type RouteId = Uuid;
 
 const COLORS: [&str; 10] = [
-    "orange",
-    "red",
-    "pink",
-    "purple",
-    "blue",
-    "brown",
-    "yellow",
-    "green",
-    "white",
-    "black",
+    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
 ];
 
 // ------ ------
@@ -69,20 +60,20 @@ struct Route {
     title: String,
     completed: bool,
     color: String,
-    ticks: Vec<Tick>
+    ticks: Vec<Tick>,
 }
 
 // ------ Tick -----
 #[derive(Serialize, Deserialize)]
 struct Tick {
     typ: TickType,
-    timestamp: i32
+    timestamp: i32,
 }
 
 #[derive(Serialize, Deserialize)]
 enum TickType {
     Send = 0x00,
-    Attempt = 0x01
+    Attempt = 0x01,
 }
 
 // ------ EditingRoute ------
@@ -145,7 +136,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     title: mem::take(&mut data.new_route_title),
                     completed: false,
                     ticks: Vec::new(),
-                    color: data.chosen_color.clone()
+                    color: data.chosen_color.clone(),
                 },
             );
         }
@@ -226,7 +217,7 @@ fn view(model: &Model) -> impl View<Msg> {
                 view_main(
                     &data.routes,
                     &data.editing_route,
-                    &model.refs.editing_route_input
+                    &model.refs.editing_route_input,
                 ),
                 view_footer(),
             ]
@@ -236,11 +227,7 @@ fn view(model: &Model) -> impl View<Msg> {
 
 // ------ header ------
 
-fn view_header(
-    new_route_title: &str,
-    choosing_color: &bool,
-    chosen_color: &String
-) -> Node<Msg> {
+fn view_header(new_route_title: &str, choosing_color: &bool, chosen_color: &String) -> Node<Msg> {
     header![
         class!["header"],
         h1!["gymticks"],
@@ -268,20 +255,17 @@ fn view_header(
                 ],
                 COLORS.iter().filter_map(|hex| {
                     Some(div![
-                         class![
-                            hex.as_ref(),
-                            "active" => chosen_color == hex
-                         ],
-                         ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
+                        class![
+                           hex.as_ref(),
+                           "active" => chosen_color == hex
+                        ],
+                        ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
                     ])
                 })
             ],
             button![
                 id!("toggle-color"),
-                class![
-                    chosen_color.as_str(),
-                    "toggle-color"
-                ],
+                class![chosen_color.as_str(), "toggle-color"],
                 ev(Ev::Click, |_| Msg::ToggleChoosingColor()),
                 "❯"
             ],
@@ -294,7 +278,7 @@ fn view_header(
 fn view_main(
     routes: &IndexMap<RouteId, Route>,
     editing_route: &Option<EditingRoute>,
-    editing_route_input: &ElRef<HtmlInputElement>
+    editing_route_input: &ElRef<HtmlInputElement>,
 ) -> Node<Msg> {
     section![
         class!["main"],
@@ -312,7 +296,13 @@ fn view_routes(
     ul![
         class!["route-list"],
         routes.iter().filter_map(|(route_id, route)| {
-            Some(view_route(route_id, route, editing_route, editing_route_input, &time))
+            Some(view_route(
+                route_id,
+                route,
+                editing_route,
+                editing_route_input,
+                &time,
+            ))
         })
     ]
 }
@@ -322,13 +312,13 @@ fn view_route(
     route: &Route,
     editing_route: &Option<EditingRoute>,
     editing_route_input: &ElRef<HtmlInputElement>,
-    time: &DateTime<Utc>
+    time: &DateTime<Utc>,
 ) -> Node<Msg> {
     let (num_sends, num_other) = route.ticks.iter().fold((0i32, 0i32), |acc, tick| {
-       return match tick.typ {
-           TickType::Send => (acc.0 + 1, acc.1),
-           _ => (acc.0, acc.1 + 1)
-       }
+        return match tick.typ {
+            TickType::Send => (acc.0 + 1, acc.1),
+            _ => (acc.0, acc.1 + 1),
+        };
     });
 
     li![
@@ -370,20 +360,25 @@ fn view_route(
                 ),
                 route.title
             ],
-            label![
-                format!("{}", if num_sends > 0 {  num_sends } else { num_other })
-            ],
-            label![
-                route.ticks.last().map_or_else(
-                    || String::new(),
-                    |tick| {
-                        format!("{}",util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time))
-                    }
-                )
-            ],
+            label![format!(
+                "{}",
+                if num_sends > 0 { num_sends } else { num_other }
+            )],
+            label![route.ticks.last().map_or_else(
+                || String::new(),
+                |tick| {
+                    format!(
+                        "{}",
+                        util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time)
+                    )
+                }
+            )],
             button![
                 class!["destroy"],
-                ev(Ev::Click, enc!((route_id) move |_| Msg::RemoveRoute(route_id)))
+                ev(
+                    Ev::Click,
+                    enc!((route_id) move |_| Msg::RemoveRoute(route_id))
+                )
             ]
         ],
         match editing_route {
@@ -415,9 +410,7 @@ fn view_route(
 // ------ footer ------
 
 fn view_footer() -> Node<Msg> {
-    footer![
-        class!["footer"],
-    ]
+    footer![class!["footer"],]
 }
 
 #[wasm_bindgen]
