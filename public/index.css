@@ -128,43 +128,73 @@ body {
     border: 1px solid #eee;
 }
 
-.toggle-color.orange, .color-chooser .orange {
+.toggle-color.orange,
+.color-chooser .orange,
+.color-flag.orange
+{
     background-color: #FF8C00;
     color: #ececec;
 }
-.toggle-color.red, .color-chooser .red {
+.toggle-color.red,
+.color-chooser .red,
+.color-flag.red
+{
     background-color: #EB262D;
     color: #ececec;
 }
-.toggle-color.pink, .color-chooser .pink {
+.toggle-color.pink,
+.color-chooser .pink,
+.color-flag.pink
+{
     background-color: #FF33E9;
     color: #ececec;
 }
-.toggle-color.purple, .color-chooser .purple {
+.toggle-color.purple,
+.color-chooser .purple,
+.color-flag.purple
+{
     background-color: #8836EB;
     color: #ececec;
 }
-.toggle-color.blue, .color-chooser .blue {
+.toggle-color.blue,
+.color-chooser .blue,
+.color-flag.blue
+{
     background-color: #3434FF;
     color: #ececec;
 }
-.toggle-color.brown, .color-chooser .brown {
+.toggle-color.brown,
+.color-chooser .brown,
+.color-flag.brown
+{
     background-color: #D2691E;
     color: #ececec;
 }
-.toggle-color.yellow, .color-chooser .yellow {
+.toggle-color.yellow,
+.color-chooser .yellow,
+.color-flag.yellow
+{
     background-color: #FFF147;
     color: #c7c7c7;
 }
-.toggle-color.green, .color-chooser .green {
+.toggle-color.green,
+.color-chooser .green,
+.color-flag.green
+{
     background-color: #53FF2f;
     color: #ececec;
 }
-.toggle-color.white, .color-chooser .white {
+.toggle-color.white,
+.color-chooser .white,
+.color-flag.white
+{
     background-color: #FFFFFF;
     color: #c7c7c7;
 }
-.toggle-color.black, .color-chooser .black {
+.toggle-color.black,
+.color-chooser .black,
+.color-flag.black
+{
     background-color: #000000;
     color: #ececec;
 }

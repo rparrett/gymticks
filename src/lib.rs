@@ -139,6 +139,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     color: data.chosen_color.clone(),
                 },
             );
+            data.routes.sort_by(|_ak, av, _bk, bv| av.title.cmp(&bv.title))
         }
         Msg::RemoveRoute(route_id) => {
             data.routes.shift_remove(&route_id);
@@ -169,6 +170,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             if let Some(editing_route) = data.editing_route.take() {
                 if let Some(route) = data.routes.get_mut(&editing_route.id) {
                     route.title = editing_route.title;
+                    data.routes.sort_by(|_ak, av, _bk, bv| av.title.cmp(&bv.title))
                 }
             }
         }
@@ -332,10 +334,10 @@ fn view_route(
         div![
             class!["view"],
             div![
-                class!["color-flag"],
-                style! {
-                    St::BackgroundColor => route.color
-                }
+                class![
+                    route.color.as_ref(),
+                    "color-flag"
+                ],
             ],
             button![
                 class!["tick-button"],
