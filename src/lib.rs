@@ -23,9 +23,7 @@ const COLORS: [&str; 10] = [
     "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
 ];
 
-const SECTIONS: [&str; 8] = [
-    "AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8",
-];
+const SECTIONS: [&str; 8] = ["AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8"];
 
 const ROUTEGRADES: [&str; 14] = [
     "5", "6", "7", "8", "9", "10-", "10", "10+", "11-", "11", "11+", "12-", "12", "12+",
@@ -175,7 +173,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 // idea how to sort by multiple criteria
                 let a = av.section.clone() + &av.grade + &av.title;
                 let b = bv.section.clone() + &bv.grade + &bv.title;
-                
+
                 return a.cmp(&b);
             })
         }
@@ -216,7 +214,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                         // idea how to sort by multiple criteria
                         let a = av.section.clone() + &av.grade + &av.title;
                         let b = bv.section.clone() + &bv.grade + &bv.title;
-                        
+
                         return a.cmp(&b);
                     })
                 }
@@ -240,7 +238,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::ChooseColor(color) => {
             data.chosen_color = color;
         }
-        
+
         Msg::ChooseSection(section) => {
             data.chosen_section = section;
         }
@@ -286,7 +284,13 @@ fn view(model: &Model) -> impl View<Msg> {
 
 // ------ header ------
 
-fn view_header(new_route_title: &str, choosing_color: &bool, chosen_color: &String, chosen_section: &String, chosen_grade: &String) -> Node<Msg> {
+fn view_header(
+    new_route_title: &str,
+    choosing_color: &bool,
+    chosen_color: &String,
+    chosen_section: &String,
+    chosen_grade: &String,
+) -> Node<Msg> {
     header![
         class!["header"],
         h1!["gymticks"],
@@ -432,7 +436,7 @@ fn view_route(
             TickType::Send => {
                 num_sends = num_sends + 1;
                 attempts_since_send = 0;
-            },
+            }
             TickType::Attempt => {
                 num_attempts = num_attempts + 1;
                 if num_sends > 0 {
@@ -440,10 +444,9 @@ fn view_route(
                 } else {
                     attempts_to_send = attempts_to_send + 1;
                 }
-            },
+            }
             _ => {}
         }
-
     }
 
     li![
@@ -457,10 +460,7 @@ fn view_route(
         div![
             class!["view"],
             div![
-                class![
-                    route.color.as_ref(),
-                    "color-flag"
-                ],
+                class![route.color.as_ref(), "color-flag"],
                 div![route.section],
                 div![route.grade],
             ],
@@ -497,7 +497,10 @@ fn view_route(
                         |tick| {
                             format!(
                                 "{}",
-                                util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time)
+                                util::time_diff_in_words(
+                                    Utc.timestamp(tick.timestamp.into(), 0),
+                                    *time
+                                )
                             )
                         }
                     )]
