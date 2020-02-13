@@ -15,12 +15,24 @@ mod util;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-2";
+const STORAGE_KEY: &str = "gymticks-7";
 
 type RouteId = Uuid;
 
 const COLORS: [&str; 10] = [
     "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
+];
+
+const SECTIONS: [&str; 8] = [
+    "AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8",
+];
+
+const ROUTEGRADES: [&str; 14] = [
+    "5", "6", "7", "8", "9", "10-", "10", "10+", "11-", "11", "11+", "12-", "12", "12+",
+];
+
+const BOULDERGRADES: [&str; 11] = [
+    "V0-", "V0", "V0+", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "?",
 ];
 
 // ------ ------
@@ -42,6 +54,8 @@ struct Data {
     editing_route: Option<EditingRoute>,
     choosing_color: bool,
     chosen_color: String,
+    chosen_section: String,
+    chosen_grade: String,
 }
 
 struct Services {
@@ -60,6 +74,8 @@ struct Route {
     title: String,
     completed: bool,
     color: String,
+    section: String,
+    grade: String,
     ticks: Vec<Tick>,
 }
 
@@ -90,7 +106,18 @@ struct EditingRoute {
 
 fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
     let local_storage = storage::get_storage().expect("get `LocalStorage`");
-    let data = storage::load_data(&local_storage, STORAGE_KEY).unwrap_or_default();
+    let mut data: Data = storage::load_data(&local_storage, STORAGE_KEY).unwrap_or_default();
+
+    // TODO unwrap_or with default values instead of this nonsense?
+    if data.chosen_color.is_empty() {
+        data.chosen_color = COLORS[0].to_string();
+    }
+    if data.chosen_section.is_empty() {
+        data.chosen_section = SECTIONS[0].to_string();
+    }
+    if data.chosen_grade.is_empty() {
+        data.chosen_grade = ROUTEGRADES[0].to_string();
+    }
 
     AfterMount::new(Model {
         data,
@@ -118,6 +145,8 @@ enum Msg {
 
     ToggleChoosingColor(),
     ChooseColor(String),
+    ChooseSection(String),
+    ChooseGrade(String),
 
     NoOp,
 }
@@ -137,9 +166,18 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     completed: false,
                     ticks: Vec::new(),
                     color: data.chosen_color.clone(),
+                    section: data.chosen_section.clone(),
+                    grade: data.chosen_grade.clone(),
                 },
             );
-            data.routes.sort_by(|_ak, av, _bk, bv| av.title.cmp(&bv.title))
+            data.routes.sort_by(|_ak, av, _bk, bv| {
+                // TODO this concatenation seems inefficient, but I have no
+                // idea how to sort by multiple criteria
+                let a = av.section.clone() + &av.grade + &av.title;
+                let b = bv.section.clone() + &bv.grade + &bv.title;
+                
+                return a.cmp(&b);
+            })
         }
         Msg::RemoveRoute(route_id) => {
             data.routes.shift_remove(&route_id);
@@ -170,7 +208,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             if let Some(editing_route) = data.editing_route.take() {
                 if let Some(route) = data.routes.get_mut(&editing_route.id) {
                     route.title = editing_route.title;
-                    data.routes.sort_by(|_ak, av, _bk, bv| av.title.cmp(&bv.title))
+
+                    // TODO: this code is duplicated. can we just implement some
+                    // trait for a Route and use .sort?
+                    data.routes.sort_by(|_ak, av, _bk, bv| {
+                        // TODO this concatenation seems inefficient, but I have no
+                        // idea how to sort by multiple criteria
+                        let a = av.section.clone() + &av.grade + &av.title;
+                        let b = bv.section.clone() + &bv.grade + &bv.title;
+                        
+                        return a.cmp(&b);
+                    })
                 }
             }
         }
@@ -191,7 +239,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
         Msg::ChooseColor(color) => {
             data.chosen_color = color;
-            data.choosing_color = false;
+        }
+        
+        Msg::ChooseSection(section) => {
+            data.chosen_section = section;
+        }
+
+        Msg::ChooseGrade(grade) => {
+            data.chosen_grade = grade;
         }
 
         Msg::NoOp => (),
@@ -210,7 +265,9 @@ fn view(model: &Model) -> impl View<Msg> {
         view_header(
             &data.new_route_title,
             &data.choosing_color,
-            &data.chosen_color
+            &data.chosen_color,
+            &data.chosen_section,
+            &data.chosen_grade
         ),
         if data.routes.is_empty() {
             vec![]
@@ -229,7 +286,7 @@ fn view(model: &Model) -> impl View<Msg> {
 
 // ------ header ------
 
-fn view_header(new_route_title: &str, choosing_color: &bool, chosen_color: &String) -> Node<Msg> {
+fn view_header(new_route_title: &str, choosing_color: &bool, chosen_color: &String, chosen_section: &String, chosen_grade: &String) -> Node<Msg> {
     header![
         class!["header"],
         h1!["gymticks"],
@@ -265,11 +322,60 @@ fn view_header(new_route_title: &str, choosing_color: &bool, chosen_color: &Stri
                     ])
                 })
             ],
+            div![
+                class![
+                   "section-chooser",
+                   "choosing-color" => choosing_color
+                ],
+                SECTIONS.iter().filter_map(|abbrev| {
+                    Some(div![
+                        class![
+                           abbrev.as_ref(),
+                           "active" => chosen_section == abbrev
+                        ],
+                        ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
+                        abbrev
+                    ])
+                })
+            ],
+            div![
+                class![
+                   "grade-chooser",
+                   "choosing-color" => choosing_color
+                ],
+                ROUTEGRADES.iter().filter_map(|grade| {
+                    Some(div![
+                        class![
+                           grade.as_ref(),
+                           "active" => chosen_grade == grade
+                        ],
+                        ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
+                        grade
+                    ])
+                })
+            ],
+            div![
+                class![
+                   "grade-chooser",
+                   "choosing-color" => choosing_color
+                ],
+                BOULDERGRADES.iter().filter_map(|grade| {
+                    Some(div![
+                        class![
+                           grade.as_ref(),
+                           "active" => chosen_grade == grade
+                        ],
+                        ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
+                        grade
+                    ])
+                })
+            ],
             button![
                 id!("toggle-color"),
                 class![chosen_color.as_str(), "toggle-color"],
                 ev(Ev::Click, |_| Msg::ToggleChoosingColor()),
-                "❯"
+                div![chosen_section.as_str()],
+                div![chosen_grade.as_str()]
             ],
         ]
     ]
@@ -338,6 +444,8 @@ fn view_route(
                     route.color.as_ref(),
                     "color-flag"
                 ],
+                div![route.section],
+                div![route.grade],
             ],
             button![
                 class!["tick-button"],

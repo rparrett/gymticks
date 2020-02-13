@@ -119,14 +119,16 @@ body {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	-webkit-transform: rotate(90deg);
-	transform: rotate(90deg);
-	content: '❯';
-	font-size: 22px;
+	font-size: 18px;
+    font-weight: bold;
 	color: #737373;
     margin: 14px 0px 14px 14px;
     border-radius: 3px;
     border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
 }
 
 .toggle-color.orange,
@@ -182,7 +184,7 @@ body {
 .color-chooser .green,
 .color-flag.green
 {
-    background-color: #53FF2f;
+    background-color: #3ede1d;
     color: #ececec;
 }
 .toggle-color.white,
@@ -210,7 +212,7 @@ body {
 	position: relative;
 	font-size: 24px;
 	border-bottom: 1px solid #ededed;
-    padding-left: 15px;
+    padding-left: 45px;
 }
 
 .route-list li:last-child {
@@ -351,15 +353,49 @@ body {
 }
 .color-chooser div {
     height: 40px;
-    flex: 1
+    line-height: 40px;
+    flex: 1;
+    text-align: center;
+}
+.section-chooser {
+    display: none;
+    justify-content: stretch;
+}
+.section-chooser.choosing-color {
+    display: flex;
+}
+.section-chooser div {
+    height: 40px;
+    line-height: 40px;
+    flex: 1;
+    text-align: center;
+}
+.grade-chooser {
+    display: none;
+    justify-content: stretch;
+}
+.grade-chooser.choosing-color {
+    display: flex;
+}
+.grade-chooser div {
+    height: 40px;
+    line-height: 40px;
+    flex: 1;
+    text-align: center;
 }
 
 .color-flag {
     position: absolute;
     top: 0;
     left: 0;
-    width: 10px;
-    height: 100%;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
 }
 
 /*
