@@ -445,7 +445,6 @@ fn view_route(
                     attempts_to_send = attempts_to_send + 1;
                 }
             }
-            _ => {}
         }
     }
 
