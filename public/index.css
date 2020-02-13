@@ -212,7 +212,6 @@ body {
 	position: relative;
 	font-size: 24px;
 	border-bottom: 1px solid #ededed;
-    padding-left: 45px;
 }
 
 .route-list li:last-child {
@@ -235,11 +234,46 @@ body {
 	display: none;
 }
 
-.route-list li label {
-	word-break: break-all;
-	padding: 15px 15px 15px 15px;
+.route-list li .view {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.route-list li .view .stats {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-size: 12px;
+    width: 80px;
+    margin-right: 10px;
+}
+
+.route-list li .view .stats .stats-sends,
+.route-list li .view .stats .stats-attempts
+{
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.route-list li .view .stats .stats-sends div,
+.route-list li .view .stats .stats-attempts div
+{
+    flex: 1;
+}
+.route-list li .view .stats .stats-sends div:first-child,
+.route-list li .view .stats .stats-attempts div:first-child
+{
+    flex: 0.5;
+}
+
+
+.route-list li .view>label {
+	padding: 0px 15px 0px 15px;
 	line-height: 1.2;
 	transition: color 0.4s;
+    flex: 2;
 }
 
 .route-list li.completed label {
@@ -249,13 +283,8 @@ body {
 
 .route-list li .destroy {
 	display: block;
-	position: absolute;
-	top: 0;
-	right: 10px;
-	bottom: 0;
 	width: 40px;
 	height: 40px;
-	margin: auto 0;
 	font-size: 30px;
 	color: #cc9a9a;
 	transition: color 0.2s ease-out;
@@ -279,8 +308,6 @@ body {
 
 .footer {
 	color: #777;
-	padding: 10px 15px;
-	height: 20px;
 	text-align: center;
 	border-top: 1px solid #e6e6e6;
 }
@@ -330,10 +357,18 @@ body {
 .tick-button {
 	color: inherit;
 	margin: 3px;
-	padding: 3px 7px;
 	text-decoration: none;
 	border: 1px solid #eee;
 	border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-self: stretch;
+}
+
+.tick-button label {
+    font-size: 18px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .tick-button:hover {
@@ -385,9 +420,6 @@ body {
 }
 
 .color-flag {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 40px;
     height: 40px;
     text-align: center;
@@ -414,10 +446,6 @@ body {
 }
 
 @media (max-width: 430px) {
-	.footer {
-		height: 50px;
-	}
-
 	.filters {
 		bottom: 10px;
 	}

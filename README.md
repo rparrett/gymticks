@@ -18,6 +18,7 @@ This is a very specialized Todo app for keeping track of routes completed in a c
     - [ ] time since route itself was created
     - [ ] notes
 - [ ] better style for grade/section buttons
+- [ ] add separate "boulder sections" line
 - [ ] edit route's grade/section
 - [ ] display aggregate information about ticks
 - [ ] more dramatic button press feedback, especiall for attempts after send

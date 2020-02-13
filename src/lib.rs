@@ -422,12 +422,29 @@ fn view_route(
     editing_route_input: &ElRef<HtmlInputElement>,
     time: &DateTime<Utc>,
 ) -> Node<Msg> {
-    let (num_sends, num_other) = route.ticks.iter().fold((0i32, 0i32), |acc, tick| {
-        return match tick.typ {
-            TickType::Send => (acc.0 + 1, acc.1),
-            _ => (acc.0, acc.1 + 1),
-        };
-    });
+    let mut num_sends = 0;
+    let mut num_attempts = 0;
+    let mut attempts_to_send = 0;
+    let mut attempts_since_send = 0;
+
+    for tick in &route.ticks {
+        match tick.typ {
+            TickType::Send => {
+                num_sends = num_sends + 1;
+                attempts_since_send = 0;
+            },
+            TickType::Attempt => {
+                num_attempts = num_attempts + 1;
+                if num_sends > 0 {
+                    attempts_since_send = attempts_since_send + 1;
+                } else {
+                    attempts_to_send = attempts_to_send + 1;
+                }
+            },
+            _ => {}
+        }
+
+    }
 
     li![
         class![
@@ -453,7 +470,7 @@ fn view_route(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Send))
                 ),
-                "Snd"
+                label!["SND"]
             ],
             button![
                 class!["tick-button"],
@@ -461,7 +478,7 @@ fn view_route(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Attempt))
                 ),
-                "Att"
+                label!["ATT"]
             ],
             label![
                 ev(
@@ -470,19 +487,27 @@ fn view_route(
                 ),
                 route.title
             ],
-            label![format!(
-                "{}",
-                if num_sends > 0 { num_sends } else { num_other }
-            )],
-            label![route.ticks.last().map_or_else(
-                || String::new(),
-                |tick| {
-                    format!(
-                        "{}",
-                        util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time)
-                    )
-                }
-            )],
+            div![
+                class!["stats"],
+                div![
+                    class!["stats-sends"],
+                    div![num_sends.to_string()],
+                    div![route.ticks.last().map_or_else(
+                        || String::new(),
+                        |tick| {
+                            format!(
+                                "{}",
+                                util::time_diff_in_words(Utc.timestamp(tick.timestamp.into(), 0), *time)
+                            )
+                        }
+                    )]
+                ],
+                div![
+                    class!["stats-attempts"],
+                    div![attempts_to_send.to_string()],
+                    div![attempts_since_send.to_string()]
+                ],
+            ],
             button![
                 class!["destroy"],
                 ev(
