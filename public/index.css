@@ -136,6 +136,7 @@ body {
 .color-flag.orange
 {
     background-color: #FF8C00;
+    border-color: #FF8C00;
     color: #ececec;
 }
 .toggle-color.red,
@@ -143,6 +144,7 @@ body {
 .color-flag.red
 {
     background-color: #EB262D;
+    border-color: #EB262D;
     color: #ececec;
 }
 .toggle-color.pink,
@@ -150,6 +152,7 @@ body {
 .color-flag.pink
 {
     background-color: #FF33E9;
+    border-color: #FF33E9;
     color: #ececec;
 }
 .toggle-color.purple,
@@ -157,6 +160,7 @@ body {
 .color-flag.purple
 {
     background-color: #8836EB;
+    border-color: #8836EB;
     color: #ececec;
 }
 .toggle-color.blue,
@@ -164,6 +168,7 @@ body {
 .color-flag.blue
 {
     background-color: #3434FF;
+    border-color: #3434FF;
     color: #ececec;
 }
 .toggle-color.brown,
@@ -171,6 +176,7 @@ body {
 .color-flag.brown
 {
     background-color: #D2691E;
+    border-color: #D2691E;
     color: #ececec;
 }
 .toggle-color.yellow,
@@ -178,13 +184,15 @@ body {
 .color-flag.yellow
 {
     background-color: #FFF147;
-    color: #c7c7c7;
+    border-color: #FFF147;
+    color: #555555;
 }
 .toggle-color.green,
 .color-chooser .green,
 .color-flag.green
 {
     background-color: #3ede1d;
+    border-color: #3ede1d;
     color: #ececec;
 }
 .toggle-color.white,
@@ -192,13 +200,15 @@ body {
 .color-flag.white
 {
     background-color: #FFFFFF;
-    color: #c7c7c7;
+    border-color: #555555;
+    color: #555555;
 }
 .toggle-color.black,
 .color-chooser .black,
 .color-flag.black
 {
     background-color: #000000;
+    border-color: #000000;
     color: #ececec;
 }
 
