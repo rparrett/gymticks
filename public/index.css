@@ -44,7 +44,7 @@ body {
 
 .routeapp {
 	background: #fff;
-	margin: 130px 0 40px 0;
+	margin: 60px 0 40px 0;
 	position: relative;
 	box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),
 	            0 25px 50px 0 rgba(0, 0, 0, 0.1);
@@ -122,7 +122,7 @@ body {
 	font-size: 18px;
     font-weight: bold;
 	color: #737373;
-    margin: 14px 0px 14px 14px;
+    margin: 14px 0px 14px 0px;
     border-radius: 3px;
     border: 1px solid #eee;
     display: flex;
@@ -364,6 +364,10 @@ body {
 	text-decoration: underline;
 }
 
+.new-route-button {
+    padding: 3px 10px 5px 10px;
+}
+
 .tick-button {
 	color: inherit;
 	margin: 3px;
@@ -390,11 +394,8 @@ body {
 }
 
 .color-chooser {
-    display: none;
-    justify-content: stretch;
-}
-.color-chooser.choosing-color {
     display: flex;
+    justify-content: stretch;
 }
 .color-chooser div {
     height: 40px;
@@ -403,11 +404,8 @@ body {
     text-align: center;
 }
 .section-chooser {
-    display: none;
-    justify-content: stretch;
-}
-.section-chooser.choosing-color {
     display: flex;
+    justify-content: stretch;
 }
 .section-chooser div {
     height: 40px;
@@ -416,11 +414,8 @@ body {
     text-align: center;
 }
 .grade-chooser {
-    display: none;
-    justify-content: stretch;
-}
-.grade-chooser.choosing-color {
     display: flex;
+    justify-content: stretch;
 }
 .grade-chooser div {
     height: 40px;
@@ -430,16 +425,110 @@ body {
 }
 
 .color-flag {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
+    border-radius: 3px;
+    margin-left: 6px;
+    margin-right: 3px;
     text-align: center;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     flex-direction: column;
     display: flex;
     justify-content: center;
 }
 
+.color-flag div {
+    line-height: 0.95;
+}
+
+/*
+ * top bar
+ */
+
+.topbar {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+	background: #f5f5f5;
+    z-index: 4;
+	box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),
+	            0 25px 50px 0 rgba(0, 0, 0, 0.1);
+}
+
+.topbar div:first-child {
+    float: left;
+    margin: 10px;
+    font-size: 32px;
+	color: rgba(101, 136, 173, 1.0);
+}
+.topbar div:last-child {
+    margin: 10px;
+    float: right;
+	padding: 3px 10px 5px 10px;
+	text-decoration: none;
+	border: 1px solid #eee;
+	border-radius: 3px;
+}
+
+/*
+ * modal setup
+ */
+
+.modal-bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.modal-container {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 3;
+}
+
+.modal {
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.open.modal-bg {
+    visibility: visible;
+    opacity: 1;
+}
+
+.open.modal-container {
+    visibility: visible;
+    opacity: 1;
+}
+
+/*
+ * modal customization
+ */
+
+.modal-bg {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-container {
+    padding: 20px;
+    background: white;
+    box-shadow: rgba(0,0,0,0.5) 0 0 20px;
+    border-radius: 3px;
+    color: #333;
+    transform: translate(-50%,-50%) scale(.9);
+    width: 90%;
+}
 /*
 	Hack to remove background from Mobile Safari.
 	Can't use it globally since it destroys checkboxes in Firefox

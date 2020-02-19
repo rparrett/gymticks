@@ -15,7 +15,7 @@ mod util;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-7";
+const STORAGE_KEY: &str = "gymticks-8";
 
 type RouteId = Uuid;
 
@@ -50,10 +50,10 @@ struct Data {
     routes: IndexMap<RouteId, Route>,
     new_route_title: String,
     editing_route: Option<EditingRoute>,
-    choosing_color: bool,
     chosen_color: String,
     chosen_section: String,
     chosen_grade: String,
+    modal_open: bool,
 }
 
 struct Services {
@@ -117,6 +117,10 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
         data.chosen_grade = ROUTEGRADES[0].to_string();
     }
 
+    // TODO actually this, and the stuff above don't really need to be persisted at all.
+    // we should probably keep a separate PersistantData and Data.
+    data.modal_open = false;
+
     AfterMount::new(Model {
         data,
         services: Services { local_storage },
@@ -141,10 +145,12 @@ enum Msg {
 
     AddTickToRoute(RouteId, TickType),
 
-    ToggleChoosingColor(),
     ChooseColor(String),
     ChooseSection(String),
     ChooseGrade(String),
+
+    OpenModal(),
+    CloseModal(),
 
     NoOp,
 }
@@ -175,7 +181,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 let b = bv.section.clone() + &bv.grade + &bv.title;
 
                 return a.cmp(&b);
-            })
+            });
+            data.modal_open = false;
         }
         Msg::RemoveRoute(route_id) => {
             data.routes.shift_remove(&route_id);
@@ -231,10 +238,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             }
         }
 
-        Msg::ToggleChoosingColor() => {
-            data.choosing_color = !data.choosing_color;
-        }
-
         Msg::ChooseColor(color) => {
             data.chosen_color = color;
         }
@@ -245,6 +248,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
         Msg::ChooseGrade(grade) => {
             data.chosen_grade = grade;
+        }
+
+        Msg::OpenModal() => {
+            data.modal_open = true;
+        }
+
+        Msg::CloseModal() => {
+            data.modal_open = false;
         }
 
         Msg::NoOp => (),
@@ -260,13 +271,30 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 fn view(model: &Model) -> impl View<Msg> {
     let data = &model.data;
     nodes![
-        view_header(
-            &data.new_route_title,
-            &data.choosing_color,
-            &data.chosen_color,
-            &data.chosen_section,
-            &data.chosen_grade
-        ),
+        div![
+            class!["topbar"],
+            div![
+                "gymticks"
+            ],
+            div![
+                button![
+                    ev(Ev::Click, move |_| Msg::OpenModal()),
+                    "+"
+                ]
+            ]
+        ],
+        div![
+            class!["modal-container", "open" => &data.modal_open],
+            div![
+                class!["modal"],
+                view_header(
+                    &data.new_route_title,
+                    &data.chosen_color,
+                    &data.chosen_section,
+                    &data.chosen_grade
+                ),
+            ]
+        ],
         if data.routes.is_empty() {
             vec![]
         } else {
@@ -279,6 +307,10 @@ fn view(model: &Model) -> impl View<Msg> {
                 view_footer(),
             ]
         },
+        div![
+            class!["modal-bg", "open" => &data.modal_open],
+            ev(Ev::Click, move |_| Msg::CloseModal())
+        ]
     ]
 }
 
@@ -286,7 +318,6 @@ fn view(model: &Model) -> impl View<Msg> {
 
 fn view_header(
     new_route_title: &str,
-    choosing_color: &bool,
     chosen_color: &String,
     chosen_section: &String,
     chosen_grade: &String,
@@ -314,7 +345,6 @@ fn view_header(
             div![
                 class![
                    "color-chooser",
-                   "choosing-color" => choosing_color
                 ],
                 COLORS.iter().filter_map(|hex| {
                     Some(div![
@@ -329,7 +359,6 @@ fn view_header(
             div![
                 class![
                    "section-chooser",
-                   "choosing-color" => choosing_color
                 ],
                 SECTIONS.iter().filter_map(|abbrev| {
                     Some(div![
@@ -345,7 +374,6 @@ fn view_header(
             div![
                 class![
                    "grade-chooser",
-                   "choosing-color" => choosing_color
                 ],
                 ROUTEGRADES.iter().filter_map(|grade| {
                     Some(div![
@@ -361,7 +389,6 @@ fn view_header(
             div![
                 class![
                    "grade-chooser",
-                   "choosing-color" => choosing_color
                 ],
                 BOULDERGRADES.iter().filter_map(|grade| {
                     Some(div![
@@ -377,10 +404,14 @@ fn view_header(
             button![
                 id!("toggle-color"),
                 class![chosen_color.as_str(), "toggle-color"],
-                ev(Ev::Click, |_| Msg::ToggleChoosingColor()),
                 div![chosen_section.as_str()],
                 div![chosen_grade.as_str()]
             ],
+        ],
+        button![
+            class!["tick-button new-route-button"],
+            ev(Ev::Click, move |_| Msg::CreateNewRoute),
+            "Add Route"
         ]
     ]
 }
