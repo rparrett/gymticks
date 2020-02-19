@@ -20,10 +20,13 @@ const STORAGE_KEY: &str = "gymticks-8";
 type RouteId = Uuid;
 
 const COLORS: [&str; 10] = [
-    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
+//    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
+    "red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "white", "black"
 ];
 
 const SECTIONS: [&str; 8] = ["AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8"];
+
+const BOULDERSECTIONS: [&str; 7] = ["VRT", "GLB", "ROF", "RWV", "CAN", "LWF", "SLB"];
 
 const ROUTEGRADES: [&str; 14] = [
     "5", "6", "7", "8", "9", "10-", "10", "10+", "11-", "11", "11+", "12-", "12", "12+",
@@ -278,23 +281,19 @@ fn view(model: &Model) -> impl View<Msg> {
             ],
             div![
                 button![
+                    class!["btn btn-primary btn-lg"],
                     ev(Ev::Click, move |_| Msg::OpenModal()),
                     "+"
                 ]
             ]
         ],
-        div![
-            class!["modal-container", "open" => &data.modal_open],
-            div![
-                class!["modal"],
-                view_header(
-                    &data.new_route_title,
-                    &data.chosen_color,
-                    &data.chosen_section,
-                    &data.chosen_grade
-                ),
-            ]
-        ],
+        view_modal(
+            &data.modal_open,
+            &data.new_route_title,
+            &data.chosen_color,
+            &data.chosen_section,
+            &data.chosen_grade
+        ),
         if data.routes.is_empty() {
             vec![]
         } else {
@@ -303,8 +302,7 @@ fn view(model: &Model) -> impl View<Msg> {
                     &data.routes,
                     &data.editing_route,
                     &model.refs.editing_route_input,
-                ),
-                view_footer(),
+                )
             ]
         },
         div![
@@ -316,102 +314,126 @@ fn view(model: &Model) -> impl View<Msg> {
 
 // ------ header ------
 
-fn view_header(
+fn view_modal(
+    modal_open: &bool,
     new_route_title: &str,
     chosen_color: &String,
     chosen_section: &String,
     chosen_grade: &String,
 ) -> Node<Msg> {
-    header![
-        class!["header"],
-        h1!["gymticks"],
+    div![
+        class!["modal-container", "open" => modal_open],
         div![
-            input![
-                class!["new-route"],
-                attrs! {
-                    At::Placeholder => "Description of route";
-                    At::AutoFocus => true.as_at_value();
-                    At::Value => new_route_title;
-                },
-                keyboard_ev(Ev::KeyDown, |keyboard_event| {
-                    if keyboard_event.key_code() == ENTER_KEY {
-                        Msg::CreateNewRoute
-                    } else {
-                        Msg::NoOp
-                    }
-                }),
-                input_ev(Ev::Input, Msg::NewRouteTitleChanged),
-            ],
+            class!["modal"],
             div![
-                class![
-                   "color-chooser",
+                input![
+                    class!["new-route"],
+                    attrs! {
+                        At::Placeholder => "Description of route";
+                        At::AutoFocus => true.as_at_value();
+                        At::Value => new_route_title;
+                    },
+                    keyboard_ev(Ev::KeyDown, |keyboard_event| {
+                        if keyboard_event.key_code() == ENTER_KEY {
+                            Msg::CreateNewRoute
+                        } else {
+                            Msg::NoOp
+                        }
+                    }),
+                    input_ev(Ev::Input, Msg::NewRouteTitleChanged),
                 ],
-                COLORS.iter().filter_map(|hex| {
-                    Some(div![
-                        class![
-                           hex.as_ref(),
-                           "active" => chosen_color == hex
-                        ],
-                        ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
-                    ])
-                })
-            ],
-            div![
-                class![
-                   "section-chooser",
+                div![
+                    class![
+                       "color-chooser",
+                    ],
+                    COLORS.iter().filter_map(|hex| {
+                        Some(div![
+                            class![
+                               hex.as_ref(),
+                               "active" => chosen_color == hex
+                            ],
+                            ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
+                        ])
+                    })
                 ],
-                SECTIONS.iter().filter_map(|abbrev| {
-                    Some(div![
-                        class![
-                           abbrev.as_ref(),
-                           "active" => chosen_section == abbrev
-                        ],
-                        ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
-                        abbrev
-                    ])
-                })
-            ],
-            div![
-                class![
-                   "grade-chooser",
+                div![
+                    class![
+                       "section-chooser",
+                    ],
+                    div![
+                        class!["section-chooser-row"],
+                        SECTIONS.iter().filter_map(|abbrev| {
+                            Some(div![
+                                class![
+                                   abbrev.as_ref(),
+                                   "active" => chosen_section == abbrev,
+                                   "section-chooser-item"
+                                ],
+                                ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
+                                abbrev
+                            ])
+                        })
+                    ],
+                    div![
+                        class!["section-chooser-row"],
+                        BOULDERSECTIONS.iter().filter_map(|abbrev| {
+                            Some(div![
+                                class![
+                                   abbrev.as_ref(),
+                                   "active" => chosen_section == abbrev,
+                                   "section-chooser-item"
+                                ],
+                                ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
+                                abbrev
+                            ])
+                        })
+                    ]
                 ],
-                ROUTEGRADES.iter().filter_map(|grade| {
-                    Some(div![
-                        class![
-                           grade.as_ref(),
-                           "active" => chosen_grade == grade
-                        ],
-                        ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
-                        grade
-                    ])
-                })
-            ],
-            div![
-                class![
-                   "grade-chooser",
+                div![
+                    class![
+                       "section-chooser",
+                    ],
+                    div![
+                        class!["section-chooser-row"],
+                        ROUTEGRADES.iter().filter_map(|grade| {
+                            Some(div![
+                                class![
+                                   grade.as_ref(),
+                                   "active" => chosen_grade == grade,
+                                   "section-chooser-item"
+                                ],
+                                ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
+                                grade
+                            ])
+                        })
+                    ],
+                    div![
+                        class!["section-chooser-row"],
+                        BOULDERGRADES.iter().filter_map(|grade| {
+                            Some(div![
+                                class![
+                                   grade.as_ref(),
+                                   "active" => chosen_grade == grade,
+                                   "section-chooser-item"
+                                ],
+                                ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
+                                grade
+                            ])
+                        })
+                    ]
                 ],
-                BOULDERGRADES.iter().filter_map(|grade| {
-                    Some(div![
-                        class![
-                           grade.as_ref(),
-                           "active" => chosen_grade == grade
-                        ],
-                        ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
-                        grade
-                    ])
-                })
+                button![
+                    id!("toggle-color"),
+                    class![chosen_color.as_str(), "toggle-color"],
+                    div![chosen_section.as_str()],
+                    div![chosen_grade.as_str()]
+                ],
             ],
             button![
-                id!("toggle-color"),
-                class![chosen_color.as_str(), "toggle-color"],
-                div![chosen_section.as_str()],
-                div![chosen_grade.as_str()]
-            ],
-        ],
-        button![
-            class!["tick-button new-route-button"],
-            ev(Ev::Click, move |_| Msg::CreateNewRoute),
-            "Add Route"
+                class!["btn btn-primary btn-lg new-route-button"],
+                ev(Ev::Click, move |_| Msg::CreateNewRoute),
+                "Add Route"
+            ]
         ]
     ]
 }
@@ -495,7 +517,7 @@ fn view_route(
                 div![route.grade],
             ],
             button![
-                class!["tick-button"],
+                class!["tick-button btn btn-primary btn-lg btn-flex-full-height"],
                 ev(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Send))
@@ -503,7 +525,7 @@ fn view_route(
                 label!["SND"]
             ],
             button![
-                class!["tick-button"],
+                class!["tick-button btn btn-primary btn-flex-full-height"],
                 ev(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Attempt))
