@@ -176,29 +176,12 @@ body {
 .route-list li {
     margin: 0;
     position: relative;
-    font-size: 24px;
     border-bottom: 1px solid #ededed;
     padding: 2px 5px 2px 5px;
 }
 
 .route-list li:last-child {
     border-bottom: 0;
-}
-
-.route-list li.editing {
-    border-bottom: none;
-    padding: 5px;
-}
-
-.route-list li.editing .edit {
-   display: block;
-   width: 100%;
-   padding: 12px 16px;
-   margin: 0 0 0 0px;
-}
-
-.route-list li.editing .view {
-   display: none;
 }
 
 .route-list li .view {
@@ -224,35 +207,12 @@ body {
     align-items: stretch;
 }
 
-.route-list li .view .stats .stats-sends div,
-.route-list li .view .stats .stats-attempts div
-{
-    flex: 1;
-}
-.route-list li .view .stats .stats-sends div:first-child,
-.route-list li .view .stats .stats-attempts div:first-child
-{
-    flex: 0.5;
-}
-
 .route-list li .view>label {
-    padding: 0px 15px 0px 15px;
-    line-height: 1.2;
-    transition: color 0.4s;
-    flex: 2;
+    flex: 1;
 }
 
 .route-list li.completed label {
-    color: #d9d9d9;
-    text-decoration: line-through;
-}
-
-.route-list li .edit {
-   display: none;
-}
-
-.route-list li.editing:last-child {
-   margin-bottom: -1px;
+    padding: 0px 6px 0px 6px;
 }
 
 #app>div.container {

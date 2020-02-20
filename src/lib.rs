@@ -583,11 +583,7 @@ fn view_route(
 
     li![
         class![
-           "completed" => num_sends > 0,
-           "editing" => match editing_route {
-               Some(editing_route) if &editing_route.id == route_id => true,
-               _ => false
-           }
+           "completed" => num_sends > 0
         ],
         div![
             class!["view"],
@@ -639,29 +635,6 @@ fn view_route(
                 )
             ]
         ],
-        match editing_route {
-            Some(editing_route) if &editing_route.id == route_id => {
-                input![
-                    el_ref(editing_route_input),
-                    class!["edit"],
-                    attrs! {At::Value => editing_route.title},
-                    ev(Ev::Blur, |_| Msg::SaveEditingRoute),
-                    input_ev(Ev::Input, Msg::EditingRouteTitleChanged),
-                    keyboard_ev(Ev::KeyDown, |keyboard_event| {
-                        // @TODO rafactor to `match` once it can accept constants
-                        let code = keyboard_event.key_code();
-                        if code == ENTER_KEY {
-                            Msg::SaveEditingRoute
-                        } else if code == ESC_KEY {
-                            Msg::CancelRouteEdit
-                        } else {
-                            Msg::NoOp
-                        }
-                    }),
-                ]
-            }
-            _ => empty![],
-        }
     ]
 }
 
