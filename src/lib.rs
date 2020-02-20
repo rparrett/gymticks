@@ -516,23 +516,70 @@ fn view_route(
     let mut num_attempts = 0;
     let mut attempts_to_send = 0;
     let mut attempts_since_send = 0;
+    let mut last_send = 0;
+    let mut last_attempt = 0;
+    let mut send_streak = 0;
+
+    // TODO: can we iterate our way out of this mess?
 
     for tick in &route.ticks {
         match tick.typ {
             TickType::Send => {
-                num_sends = num_sends + 1;
+                last_send = tick.timestamp;
+                num_sends += 1;
                 attempts_since_send = 0;
+                send_streak += 1;
             }
             TickType::Attempt => {
-                num_attempts = num_attempts + 1;
+                send_streak = 0;
+                last_attempt = tick.timestamp;
+                num_attempts += 1;
                 if num_sends > 0 {
-                    attempts_since_send = attempts_since_send + 1;
+                    attempts_since_send += 1;
                 } else {
-                    attempts_to_send = attempts_to_send + 1;
+                    attempts_to_send += 1;
                 }
             }
         }
     }
+
+    let send_text = if num_sends == 0 {
+        String::from("unsent")
+    } else if attempts_to_send == 0 {
+        format!("{} snd (flsh)", num_sends)
+    } else if attempts_to_send > 0 {
+        format!("{} snd ({} att)", num_sends, attempts_to_send)
+    } else {
+        // unreachable?
+        String::new()
+    };
+
+    let att_text = if num_attempts == 0 && num_sends == 0 {
+        String::from("unattempted")
+    } else if num_attempts == 0 {
+        String::from("0 att")
+    } else if (last_send > 0) {
+        format!(
+            "{} att (snd {})",
+            num_attempts,
+            util::time_diff_in_words(
+                Utc.timestamp(last_send.into(), 0),
+                *time
+            )
+        )
+    } else if (last_attempt > 0) {
+        format!(
+            "{} att (att {})",
+            num_attempts,
+            util::time_diff_in_words(
+                Utc.timestamp(last_attempt.into(), 0),
+                *time
+            )
+        )
+    } else {
+        // unreachable?
+        String::new()
+    };
 
     li![
         class![
@@ -576,24 +623,11 @@ fn view_route(
                 class!["stats"],
                 div![
                     class!["stats-sends"],
-                    div![num_sends.to_string()],
-                    div![route.ticks.last().map_or_else(
-                        || String::new(),
-                        |tick| {
-                            format!(
-                                "{}",
-                                util::time_diff_in_words(
-                                    Utc.timestamp(tick.timestamp.into(), 0),
-                                    *time
-                                )
-                            )
-                        }
-                    )]
+                    send_text,
                 ],
                 div![
                     class!["stats-attempts"],
-                    div![attempts_to_send.to_string()],
-                    div![attempts_since_send.to_string()]
+                    att_text,
                 ],
             ],
             button![
