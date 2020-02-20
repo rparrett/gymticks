@@ -149,6 +149,10 @@ body {
     text-align: center;
 }
 
+.new-route-button {
+    margin-top: 6px;
+}
+
 .color-flag {
     width: 1.8rem;
     height: 1.8rem;

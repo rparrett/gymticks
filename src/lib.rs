@@ -44,15 +44,14 @@ const BOULDERGRADES: [&str; 11] = [
 
 struct Model {
     data: Data,
-    services: Services,
-    refs: Refs,
+    services: Services
 }
 
 #[derive(Default, Serialize, Deserialize)]
 struct Data {
     routes: IndexMap<RouteId, Route>,
     new_route_title: String,
-    editing_route: Option<EditingRoute>,
+    editing_route: Option<RouteId>,
     chosen_color: String,
     chosen_section: String,
     chosen_grade: String,
@@ -61,11 +60,6 @@ struct Data {
 
 struct Services {
     local_storage: Storage,
-}
-
-#[derive(Default)]
-struct Refs {
-    editing_route_input: ElRef<HtmlInputElement>,
 }
 
 // ------ Route ------
@@ -133,8 +127,7 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
 
     AfterMount::new(Model {
         data,
-        services: Services { local_storage },
-        refs: Refs::default(),
+        services: Services { local_storage }
     })
 }
 
@@ -149,7 +142,6 @@ enum Msg {
     RemoveRoute(RouteId),
 
     StartRouteEdit(RouteId),
-    EditingRouteTitleChanged(String),
     SaveEditingRoute,
     CancelRouteEdit,
 
@@ -200,29 +192,22 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
         Msg::StartRouteEdit(route_id) => {
             if let Some(route) = data.routes.get(&route_id) {
-                data.editing_route = Some({
-                    EditingRoute {
-                        id: route_id,
-                        title: route.title.clone(),
-                    }
-                });
+                data.editing_route = Some(route_id);
+                data.chosen_color = route.color.clone();
+                data.chosen_section = route.section.clone();
+                data.chosen_grade = route.grade.clone();
+                data.new_route_title = route.title.clone();
             }
 
-            let input = model.refs.editing_route_input.clone();
-            orders.after_next_render(move |_| {
-                input.get().expect("get `editing_route_input`").select();
-                Msg::NoOp
-            });
-        }
-        Msg::EditingRouteTitleChanged(title) => {
-            if let Some(ref mut editing_route) = data.editing_route {
-                editing_route.title = title
-            }
+            data.modal_open = true;
         }
         Msg::SaveEditingRoute => {
             if let Some(editing_route) = data.editing_route.take() {
-                if let Some(route) = data.routes.get_mut(&editing_route.id) {
-                    route.title = editing_route.title;
+                if let Some(route) = data.routes.get_mut(&editing_route) {
+                    route.title = mem::take(&mut data.new_route_title);
+                    route.color = data.chosen_color.clone();
+                    route.section = data.chosen_section.clone();
+                    route.grade = data.chosen_grade.clone();
 
                     // TODO: this code is duplicated. can we just implement some
                     // trait for a Route and use .sort?
@@ -236,9 +221,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     })
                 }
             }
+
+            data.modal_open = false;
+            data.editing_route = None;
         }
         Msg::CancelRouteEdit => {
             data.editing_route = None;
+            data.modal_open = false;
         }
 
         Msg::AddTickToRoute(route_id, typ) => {
@@ -314,8 +303,7 @@ fn view(model: &Model) -> impl View<Msg> {
                     class!["container grid-sm"],
                     view_main(
                         &data.routes,
-                        &data.editing_route,
-                        &model.refs.editing_route_input,
+                        &data.editing_route
                     )
                 ]
             ]
@@ -323,6 +311,7 @@ fn view(model: &Model) -> impl View<Msg> {
         view_modal(
             &data.modal_open,
             &data.new_route_title,
+            &data.editing_route,
             &data.chosen_color,
             &data.chosen_section,
             &data.chosen_grade
@@ -336,6 +325,7 @@ fn view(model: &Model) -> impl View<Msg> {
 fn view_modal(
     modal_open: &bool,
     new_route_title: &str,
+    editing_route: &Option<RouteId>,
     chosen_color: &String,
     chosen_section: &String,
     chosen_grade: &String,
@@ -459,11 +449,19 @@ fn view_modal(
                         ]
                     ],
                 ],
-                button![
-                    class!["btn btn-primary new-route-button"],
-                    ev(Ev::Click, move |_| Msg::CreateNewRoute),
-                    "Add Route"
-                ]
+                if editing_route.is_some() {
+                    button![
+                        class!["btn btn-primary new-route-button"],
+                        ev(Ev::Click, move |_| Msg::SaveEditingRoute),
+                        "Save Changes"
+                    ]
+                } else {
+                    button![
+                        class!["btn btn-primary new-route-button"],
+                        ev(Ev::Click, move |_| Msg::CreateNewRoute),
+                        "Add Route"
+                    ]
+                }
             ],
         ]
     ]
@@ -473,21 +471,19 @@ fn view_modal(
 
 fn view_main(
     routes: &IndexMap<RouteId, Route>,
-    editing_route: &Option<EditingRoute>,
-    editing_route_input: &ElRef<HtmlInputElement>,
+    editing_route: &Option<RouteId>
 ) -> Node<Msg> {
     section![
         class!["main card"],
         div![
-            view_routes(routes, editing_route, editing_route_input)
+            view_routes(routes, editing_route)
         ]
     ]
 }
 
 fn view_routes(
     routes: &IndexMap<RouteId, Route>,
-    editing_route: &Option<EditingRoute>,
-    editing_route_input: &ElRef<HtmlInputElement>,
+    editing_route: &Option<RouteId>
 ) -> Node<Msg> {
     let time = Utc.timestamp(unixTimestamp().into(), 0);
 
@@ -498,7 +494,6 @@ fn view_routes(
                 route_id,
                 route,
                 editing_route,
-                editing_route_input,
                 &time,
             ))
         })
@@ -508,8 +503,7 @@ fn view_routes(
 fn view_route(
     route_id: &RouteId,
     route: &Route,
-    editing_route: &Option<EditingRoute>,
-    editing_route_input: &ElRef<HtmlInputElement>,
+    editing_route: &Option<RouteId>,
     time: &DateTime<Utc>,
 ) -> Node<Msg> {
     let mut num_sends = 0;
@@ -591,6 +585,10 @@ fn view_route(
                 class![route.color.as_ref(), "color-flag"],
                 div![route.section],
                 div![route.grade],
+                ev(
+                    Ev::Click,
+                    enc!((route_id) move |_| Msg::StartRouteEdit(route_id))
+                ),
             ],
             button![
                 class!["tick-button btn btn-primary"],
