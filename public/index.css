@@ -22,11 +22,6 @@ body {
     flex: 1;
 }
 
-.new-route-button {
-    margin-top: 6px;
-}
-
-.toggle-color.orange,
 .color-chooser .orange,
 .color-flag.orange
 {
@@ -34,7 +29,6 @@ body {
     border-color: #FF8C00;
     color: #ececec;
 }
-.toggle-color.red,
 .color-chooser .red,
 .color-flag.red
 {
@@ -42,7 +36,6 @@ body {
     border-color: #EB262D;
     color: #ececec;
 }
-.toggle-color.pink,
 .color-chooser .pink,
 .color-flag.pink
 {
@@ -50,7 +43,6 @@ body {
     border-color: #FF33E9;
     color: #ececec;
 }
-.toggle-color.purple,
 .color-chooser .purple,
 .color-flag.purple
 {
@@ -58,7 +50,6 @@ body {
     border-color: #8836EB;
     color: #ececec;
 }
-.toggle-color.blue,
 .color-chooser .blue,
 .color-flag.blue
 {
@@ -66,7 +57,6 @@ body {
     border-color: #3434FF;
     color: #ececec;
 }
-.toggle-color.brown,
 .color-chooser .brown,
 .color-flag.brown
 {
@@ -74,7 +64,6 @@ body {
     border-color: #D2691E;
     color: #ececec;
 }
-.toggle-color.yellow,
 .color-chooser .yellow,
 .color-flag.yellow
 {
@@ -82,7 +71,6 @@ body {
     border-color: #FFF147;
     color: #555555;
 }
-.toggle-color.green,
 .color-chooser .green,
 .color-flag.green
 {
@@ -90,7 +78,6 @@ body {
     border-color: #3ede1d;
     color: #ececec;
 }
-.toggle-color.white,
 .color-chooser .white,
 .color-flag.white
 {
@@ -98,7 +85,6 @@ body {
     border-color: #555555;
     color: #555555;
 }
-.toggle-color.black,
 .color-chooser .black,
 .color-flag.black
 {
@@ -267,11 +253,6 @@ body {
 
 .route-list li.editing:last-child {
    margin-bottom: -1px;
-}
-
-.route-count {
-   float: left;
-   text-align: left;
 }
 
 #app>div.container {
