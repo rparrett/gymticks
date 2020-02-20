@@ -7,18 +7,12 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 ## TODO
 
 - [ ] retire route
-- [ ] add a note to a route
-- [ ] flag a route (as a project)
-- [ ] display more information, in a pop-down if necessary
-    - [ ] last time route was ascended
-    - [ ] last time route was attempted
-    - [ ] total number of ascents
-    - [ ] total number of attempts (before first ascent)
-    - [ ] total number of attempts (since last ascent)
-    - [ ] time since route itself was created
-    - [ ] notes
-- [ ] better style for grade/section buttons
-- [ ] add separate "boulder sections" line
-- [ ] edit route's grade/section
+- [ ] flag a route (as a project)?
+- [ ] star a route?
+- [ ] better style for grade/section selector
+- [ ] better style for color selector
+- [ ] edit route's grade/section/color/description
 - [ ] display aggregate information about ticks
-- [ ] more dramatic button press feedback, especiall for attempts after send
+- [ ] some sort of animation when modifying, sending, or adding a route
+- [ ] undo button
+- [ ] separate persistent and non-persistent app state
