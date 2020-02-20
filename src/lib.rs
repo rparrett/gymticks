@@ -101,6 +101,13 @@ struct EditingRoute {
     title: String,
 }
 
+fn before_mount(_url: Url) -> BeforeMount {
+    BeforeMount::new()
+        .mount_point("app")
+        .mount_type(MountType::Takeover)
+}
+
+
 // ------ ------
 //  After Mount
 // ------ ------
@@ -320,6 +327,7 @@ fn view(model: &Model) -> impl View<Msg> {
             &data.chosen_section,
             &data.chosen_grade
         ),
+        view_footer()
     ]
 }
 
@@ -469,8 +477,10 @@ fn view_main(
     editing_route_input: &ElRef<HtmlInputElement>,
 ) -> Node<Msg> {
     section![
-        class!["main"],
-        view_routes(routes, editing_route, editing_route_input)
+        class!["main card"],
+        div![
+            view_routes(routes, editing_route, editing_route_input)
+        ]
     ]
 }
 
@@ -624,7 +634,25 @@ fn view_route(
 // ------ footer ------
 
 fn view_footer() -> Node<Msg> {
-    footer![class!["footer"],]
+    footer![
+        class!["footer, grid-sm info"],
+        p![
+            "Created by ",
+            a![
+                attrs! {
+                    At::Href => "https://github.com/rparrett/"
+                },
+                "rob parrett"
+            ],
+            " with ",
+            a![
+                attrs! {
+                    At::Href => "https://github.com/seed-rs/"
+                },
+                "seed-rs"
+            ]
+        ]
+    ]
 }
 
 #[wasm_bindgen]
@@ -639,6 +667,7 @@ extern "C" {
 #[wasm_bindgen(start)]
 pub fn render() {
     App::builder(update, view)
+        .before_mount(before_mount)
         .after_mount(after_mount)
         .build_and_start();
 }

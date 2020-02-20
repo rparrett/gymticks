@@ -11,13 +11,12 @@
     <!-- Because of Edge, see https://github.com/samthor/fast-text-encoding -->
     <script type="text/javascript" src="/public/text-polyfill.min.js"></script>
   </head>
-  <body>
-    <section id="app" class="routeapp"></section>
-    <footer class="container grid-sm info">
-        <p>
-            Created by <a href="http://github.com/rparrett/">Rob Parrett</a> with <a href="https://github.com/seed-rs/">seed-rs</a>
-        </p>
-    </footer>
+  <body class="bg-gray">
+    <section id="app" class="routeapp">
+        <div class="loading-container text-center">
+            <div class="loading loading-lg"></div>
+        </div>
+    </section>
 
     <script type="module">
       window.unixTimestamp = () => { return Math.floor(Date.now() / 1000); }
