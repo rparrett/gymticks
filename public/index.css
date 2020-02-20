@@ -215,10 +215,6 @@ body {
     flex: 1;
 }
 
-.route-list li.completed label {
-    padding: 0px 6px 0px 6px;
-}
-
 #app>div.container {
     margin-top: 59px;
     padding: 0px;
