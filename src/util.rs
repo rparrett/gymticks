@@ -10,16 +10,16 @@ pub fn time_diff_in_words(time: DateTime<Utc>, now: DateTime<Utc>) -> String {
     if minutes < 1 {
         "now".to_string()
     } else if minutes == 1 {
-        "1 min".to_string()
+        "1m".to_string()
     } else if minutes < 60 {
-        format!("{} min", minutes)
+        format!("{}m", minutes)
     } else if hours == 1 {
-        "1 hr".to_string()
+        "1h".to_string()
     } else if hours < 24 {
-        format!("{} hr", hours)
+        format!("{}h", hours)
     } else if days == 1 {
-        "1 day".to_string()
+        "1d".to_string()
     } else {
-        format!("{} days", days)
+        format!("{}d", days)
     }
 }
