@@ -11,7 +11,6 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] star a route?
 - [ ] better style for grade/section selector
 - [ ] better style for color selector
-- [ ] edit route's grade/section/color/description
 - [ ] display aggregate information about ticks
 - [ ] some sort of animation when modifying, sending, or adding a route
 - [ ] undo button
