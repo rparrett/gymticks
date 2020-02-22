@@ -296,9 +296,11 @@ fn view(model: &Model) -> impl View<Msg> {
         } else {
             vec![div![
                 class!["container grid-sm"],
-                view_main(&data.routes, &data.editing_route)
+                view_main(&data.routes),
+                view_aggregate(&data.routes),
             ]]
         },
+        view_footer(),
         view_modal(
             &data.modal_open,
             &data.new_route_title,
@@ -307,7 +309,6 @@ fn view(model: &Model) -> impl View<Msg> {
             &data.chosen_section,
             &data.chosen_grade
         ),
-        view_footer()
     ]
 }
 
@@ -472,7 +473,7 @@ fn view_modal(
 
 // ------ main ------
 
-fn view_main(routes: &IndexMap<RouteId, Route>, editing_route: &Option<RouteId>) -> Node<Msg> {
+fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
     section![class!["main card"], div![view_routes(routes)]]
 }
 
@@ -532,10 +533,6 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
 
     let att_text = if num_attempts == 0 && num_sends == 0 {
         String::from("unattempted")
-    } else if num_attempts == 0 {
-        String::from("0 att")
-    } else if num_sends == 0 {
-        format!("{} att", num_attempts)
     } else if last_send > last_attempt {
         format!(
             "{} att (snd {})",
@@ -605,6 +602,46 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
     ]
 }
 
+fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
+    let midnight = midnight();
+
+    let mut today = 0;
+    let mut total = 0;
+
+    for route in routes.iter() {
+        for tick in &route.1.ticks {
+            match tick.typ {
+                TickType::Send if tick.timestamp > midnight => {
+                    today += 1;
+                    total += 1;
+                },
+                TickType::Send => {
+                    total += 1;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    div![
+        class!["aggregate", "card"],
+        div![class!["card-header"], div![class!["h5", "card-title"], "Stats"]],
+        div![
+            class!["card-body"],
+            table![
+                tr![
+                    td!["Sends Today"],
+                    td![format!("{}", today)]
+                ],
+                tr![
+                    td!["Sends Total"],
+                    td![format!("{}", total)]
+                ]
+            ],
+        ]
+    ]
+}
+
 // ------ footer ------
 
 fn view_footer() -> Node<Msg> {
@@ -632,6 +669,7 @@ fn view_footer() -> Node<Msg> {
 #[wasm_bindgen]
 extern "C" {
     fn unixTimestamp() -> i32;
+    fn midnight() -> i32;
 }
 
 // ------ ------

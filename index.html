@@ -20,10 +20,11 @@
 
     <script type="module">
       window.unixTimestamp = () => { return Math.floor(Date.now() / 1000); }
+      window.midnight = () => { return Math.floor((new Date()).setHours(0) / 1000); }
 
       // https://rustwasm.github.io/docs/wasm-bindgen/examples/without-a-bundler.html
       import init from '/pkg/package.js';
-      init('/pkg/package_bg.wasm');
+      init('/pkg/package_bg.wasm?3');
     </script>
   </body>
 </html>
