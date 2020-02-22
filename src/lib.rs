@@ -143,7 +143,6 @@ enum Msg {
 
     StartRouteEdit(RouteId),
     SaveEditingRoute,
-    CancelRouteEdit,
 
     AddTickToRoute(RouteId, TickType),
 
@@ -229,10 +228,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
             data.modal_open = false;
             data.editing_route = None;
-        }
-        Msg::CancelRouteEdit => {
-            data.editing_route = None;
-            data.modal_open = false;
         }
 
         Msg::AddTickToRoute(route_id, typ) => {
@@ -497,14 +492,13 @@ fn view_main(
     section![
         class!["main card"],
         div![
-            view_routes(routes, editing_route)
+            view_routes(routes)
         ]
     ]
 }
 
 fn view_routes(
     routes: &IndexMap<RouteId, Route>,
-    editing_route: &Option<RouteId>
 ) -> Node<Msg> {
     let time = Utc.timestamp(unixTimestamp().into(), 0);
 
@@ -514,7 +508,6 @@ fn view_routes(
             Some(view_route(
                 route_id,
                 route,
-                editing_route,
                 &time,
             ))
         })
@@ -524,7 +517,6 @@ fn view_routes(
 fn view_route(
     route_id: &RouteId,
     route: &Route,
-    editing_route: &Option<RouteId>,
     time: &DateTime<Utc>,
 ) -> Node<Msg> {
     let mut num_sends = 0;
@@ -533,7 +525,7 @@ fn view_route(
     let mut attempts_since_send = 0;
     let mut last_send = 0;
     let mut last_attempt = 0;
-    let mut send_streak = 0;
+    let mut _send_streak = 0;
 
     // TODO: can we iterate our way out of this mess?
 
@@ -543,10 +535,10 @@ fn view_route(
                 last_send = tick.timestamp;
                 num_sends += 1;
                 attempts_since_send = 0;
-                send_streak += 1;
+                _send_streak += 1;
             }
             TickType::Attempt => {
-                send_streak = 0;
+                _send_streak = 0;
                 last_attempt = tick.timestamp;
                 num_attempts += 1;
                 if num_sends > 0 {
@@ -573,7 +565,7 @@ fn view_route(
         String::from("unattempted")
     } else if num_attempts == 0 {
         String::from("0 att")
-    } else if (last_send > 0) {
+    } else if last_send > 0 {
         format!(
             "{} att (snd {})",
             num_attempts,
@@ -582,7 +574,7 @@ fn view_route(
                 *time
             )
         )
-    } else if (last_attempt > 0) {
+    } else if last_attempt > 0 {
         format!(
             "{} att (att {})",
             num_attempts,
