@@ -20,8 +20,8 @@ const STORAGE_KEY: &str = "gymticks-8";
 type RouteId = Uuid;
 
 const COLORS: [&str; 10] = [
-//    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
-    "red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "white", "black"
+    //    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
+    "red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "white", "black",
 ];
 
 const SECTIONS: [&str; 8] = ["AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8"];
@@ -44,7 +44,7 @@ const BOULDERGRADES: [&str; 11] = [
 
 struct Model {
     data: Data,
-    services: Services
+    services: Services,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -101,7 +101,6 @@ fn before_mount(_url: Url) -> BeforeMount {
         .mount_type(MountType::Takeover)
 }
 
-
 // ------ ------
 //  After Mount
 // ------ ------
@@ -127,7 +126,7 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
 
     AfterMount::new(Model {
         data,
-        services: Services { local_storage }
+        services: Services { local_storage },
     })
 }
 
@@ -183,7 +182,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             };
 
             data.routes.sort_by(|_ak, av, _bk, bv| {
-                return av.section.cmp(&bv.section)
+                return av
+                    .section
+                    .cmp(&bv.section)
                     .then(av.color.cmp(&bv.color))
                     .then(av.grade.cmp(&bv.grade))
                     .then(av.title.cmp(&bv.title));
@@ -218,7 +219,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     // trait for a Route and use .sort? We might want different
                     // sort options though.
                     data.routes.sort_by(|_ak, av, _bk, bv| {
-                        return av.section.cmp(&bv.section)
+                        return av
+                            .section
+                            .cmp(&bv.section)
                             .then(av.color.cmp(&bv.color))
                             .then(av.grade.cmp(&bv.grade))
                             .then(av.title.cmp(&bv.title));
@@ -274,39 +277,27 @@ fn view(model: &Model) -> impl View<Msg> {
             class!["navbar"],
             section![
                 class!["navbar-section"],
-                a![
-                    attrs! {
-                        At::Href => "#"
-                    }
-                ],
+                a![attrs! {
+                    At::Href => "#"
+                }],
             ],
-            section![
-                class!["navbar-center"],
-                "gymticks"
-            ],
+            section![class!["navbar-center"], "gymticks"],
             section![
                 class!["navbar-section"],
                 button![
                     class!["btn btn-primary"],
                     ev(Ev::Click, move |_| Msg::OpenModal()),
-                    i![
-                        class!["icon", "icon-plus"]
-                    ]
+                    i![class!["icon", "icon-plus"]]
                 ]
             ]
         ],
         if data.routes.is_empty() {
             vec![]
         } else {
-            vec![
-                div![
-                    class!["container grid-sm"],
-                    view_main(
-                        &data.routes,
-                        &data.editing_route
-                    )
-                ]
-            ]
+            vec![div![
+                class!["container grid-sm"],
+                view_main(&data.routes, &data.editing_route)
+            ]]
         },
         view_modal(
             &data.modal_open,
@@ -342,36 +333,32 @@ fn view_modal(
                 class!["modal-body"],
                 div![
                     class!["content"],
-                    div![
+                    div![div![
+                        class!["description-and-flag"],
                         div![
-                            class!["description-and-flag"],
-                            div![
-                                class![chosen_color.as_ref(), "color-flag"],
-                                div![chosen_section],
-                                div![chosen_grade],
-                            ],
-                            input![
-                                class!["form-input"],
-                                attrs! {
-                                    At::Placeholder => "Description of route";
-                                    At::AutoFocus => true.as_at_value();
-                                    At::Value => new_route_title;
-                                },
-                                keyboard_ev(Ev::KeyDown, |keyboard_event| {
-                                    if keyboard_event.key_code() == ENTER_KEY {
-                                        Msg::CreateNewRoute(None)
-                                    } else {
-                                        Msg::NoOp
-                                    }
-                                }),
-                                input_ev(Ev::Input, Msg::NewRouteTitleChanged),
-                            ],
+                            class![chosen_color.as_ref(), "color-flag"],
+                            div![chosen_section],
+                            div![chosen_grade],
                         ],
-                    ],
+                        input![
+                            class!["form-input"],
+                            attrs! {
+                                At::Placeholder => "Description of route";
+                                At::AutoFocus => true.as_at_value();
+                                At::Value => new_route_title;
+                            },
+                            keyboard_ev(Ev::KeyDown, |keyboard_event| {
+                                if keyboard_event.key_code() == ENTER_KEY {
+                                    Msg::CreateNewRoute(None)
+                                } else {
+                                    Msg::NoOp
+                                }
+                            }),
+                            input_ev(Ev::Input, Msg::NewRouteTitleChanged),
+                        ],
+                    ],],
                     div![
-                        class![
-                           "color-chooser",
-                        ],
+                        class!["color-chooser",],
                         COLORS.iter().filter_map(|hex| {
                             Some(div![
                                 class![
@@ -383,9 +370,7 @@ fn view_modal(
                         })
                     ],
                     div![
-                        class![
-                           "section-chooser",
-                        ],
+                        class!["section-chooser",],
                         div![
                             class!["section-chooser-row"],
                             SECTIONS.iter().filter_map(|abbrev| {
@@ -416,9 +401,7 @@ fn view_modal(
                         ]
                     ],
                     div![
-                        class![
-                           "section-chooser",
-                        ],
+                        class!["section-chooser",],
                         div![
                             class!["section-chooser-row"],
                             ROUTEGRADES.iter().filter_map(|grade| {
@@ -463,12 +446,16 @@ fn view_modal(
                         class!["modal-buttons"],
                         button![
                             class!["btn btn-primary new-route-button"],
-                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(TickType::Send))),
+                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(
+                                TickType::Send
+                            ))),
                             "SND"
                         ],
                         button![
                             class!["btn new-route-button"],
-                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(TickType::Attempt))),
+                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(
+                                TickType::Attempt
+                            ))),
                             "ATT"
                         ],
                         button![
@@ -485,40 +472,22 @@ fn view_modal(
 
 // ------ main ------
 
-fn view_main(
-    routes: &IndexMap<RouteId, Route>,
-    editing_route: &Option<RouteId>
-) -> Node<Msg> {
-    section![
-        class!["main card"],
-        div![
-            view_routes(routes)
-        ]
-    ]
+fn view_main(routes: &IndexMap<RouteId, Route>, editing_route: &Option<RouteId>) -> Node<Msg> {
+    section![class!["main card"], div![view_routes(routes)]]
 }
 
-fn view_routes(
-    routes: &IndexMap<RouteId, Route>,
-) -> Node<Msg> {
+fn view_routes(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
     let time = Utc.timestamp(unixTimestamp().into(), 0);
 
     ul![
         class!["route-list"],
-        routes.iter().filter_map(|(route_id, route)| {
-            Some(view_route(
-                route_id,
-                route,
-                &time,
-            ))
-        })
+        routes
+            .iter()
+            .filter_map(|(route_id, route)| { Some(view_route(route_id, route, &time,)) })
     ]
 }
 
-fn view_route(
-    route_id: &RouteId,
-    route: &Route,
-    time: &DateTime<Utc>,
-) -> Node<Msg> {
+fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<Msg> {
     let mut num_sends = 0;
     let mut num_attempts = 0;
     let mut attempts_to_send = 0;
@@ -569,19 +538,13 @@ fn view_route(
         format!(
             "{} att (snd {})",
             num_attempts,
-            util::time_diff_in_words(
-                Utc.timestamp(last_send.into(), 0),
-                *time
-            )
+            util::time_diff_in_words(Utc.timestamp(last_send.into(), 0), *time)
         )
     } else if last_attempt > 0 {
         format!(
             "{} att (att {})",
             num_attempts,
-            util::time_diff_in_words(
-                Utc.timestamp(last_attempt.into(), 0),
-                *time
-            )
+            util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
         )
     } else {
         // unreachable?
@@ -628,14 +591,8 @@ fn view_route(
             ],
             div![
                 class!["stats"],
-                div![
-                    class!["stats-sends"],
-                    send_text,
-                ],
-                div![
-                    class!["stats-attempts"],
-                    att_text,
-                ],
+                div![class!["stats-sends"], send_text,],
+                div![class!["stats-attempts"], att_text,],
             ],
             button![
                 class!["btn btn-error"],
