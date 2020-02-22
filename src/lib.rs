@@ -534,21 +534,20 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
         String::from("unattempted")
     } else if num_attempts == 0 {
         String::from("0 att")
-    } else if last_send > 0 {
+    } else if num_sends == 0 {
+        format!("{} att", num_attempts)
+    } else if last_send > last_attempt {
         format!(
             "{} att (snd {})",
-            num_attempts,
+            attempts_since_send,
             util::time_diff_in_words(Utc.timestamp(last_send.into(), 0), *time)
         )
-    } else if last_attempt > 0 {
+    } else { 
         format!(
             "{} att (att {})",
-            num_attempts,
+            attempts_since_send,
             util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
         )
-    } else {
-        // unreachable?
-        String::new()
     };
 
     li![
