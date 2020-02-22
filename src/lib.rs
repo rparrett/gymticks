@@ -184,12 +184,10 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             };
 
             data.routes.sort_by(|_ak, av, _bk, bv| {
-                // TODO this concatenation seems inefficient, but I have no
-                // idea how to sort by multiple criteria
-                let a = av.section.clone() + &av.color + &av.grade + &av.title;
-                let b = bv.section.clone() + &bv.color + &bv.grade + &bv.title;
-
-                return a.cmp(&b);
+                return av.section.cmp(&bv.section)
+                    .then(av.color.cmp(&bv.color))
+                    .then(av.grade.cmp(&bv.grade))
+                    .then(av.title.cmp(&bv.title));
             });
 
             data.modal_open = false;
@@ -218,14 +216,13 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     route.grade = data.chosen_grade.clone();
 
                     // TODO: this code is duplicated. can we just implement some
-                    // trait for a Route and use .sort?
+                    // trait for a Route and use .sort? We might want different
+                    // sort options though.
                     data.routes.sort_by(|_ak, av, _bk, bv| {
-                        // TODO this concatenation seems inefficient, but I have no
-                        // idea how to sort by multiple criteria
-                        let a = av.section.clone() + &av.color + &av.grade + &av.title;
-                        let b = bv.section.clone() + &bv.color + &bv.grade + &bv.title;
-
-                        return a.cmp(&b);
+                        return av.section.cmp(&bv.section)
+                            .then(av.color.cmp(&bv.color))
+                            .then(av.grade.cmp(&bv.grade))
+                            .then(av.title.cmp(&bv.title));
                     })
                 }
             }
