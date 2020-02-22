@@ -186,8 +186,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             data.routes.sort_by(|_ak, av, _bk, bv| {
                 // TODO this concatenation seems inefficient, but I have no
                 // idea how to sort by multiple criteria
-                let a = av.section.clone() + &av.grade + &av.title;
-                let b = bv.section.clone() + &bv.grade + &bv.title;
+                let a = av.section.clone() + &av.color + &av.grade + &av.title;
+                let b = bv.section.clone() + &bv.color + &bv.grade + &bv.title;
 
                 return a.cmp(&b);
             });
@@ -222,8 +222,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     data.routes.sort_by(|_ak, av, _bk, bv| {
                         // TODO this concatenation seems inefficient, but I have no
                         // idea how to sort by multiple criteria
-                        let a = av.section.clone() + &av.grade + &av.title;
-                        let b = bv.section.clone() + &bv.grade + &bv.title;
+                        let a = av.section.clone() + &av.color + &av.grade + &av.title;
+                        let b = bv.section.clone() + &bv.color + &bv.grade + &bv.title;
 
                         return a.cmp(&b);
                     })
