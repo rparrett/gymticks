@@ -664,7 +664,7 @@ fn view_route(
 
 fn view_footer() -> Node<Msg> {
     footer![
-        class!["footer, grid-sm info"],
+        class!["footer", "grid-sm", "info"],
         p![
             "Created by ",
             a![
