@@ -242,6 +242,10 @@ header.navbar {
     padding: 0 !important;
 }
 
+.modal-buttons button {
+    margin-right: 6px;
+}
+
 .description-and-flag {
     display: flex;
 }

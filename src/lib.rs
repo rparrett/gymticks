@@ -138,7 +138,7 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
 enum Msg {
     NewRouteTitleChanged(String),
 
-    CreateNewRoute,
+    CreateNewRoute(Option<TickType>),
     RemoveRoute(RouteId),
 
     StartRouteEdit(RouteId),
@@ -164,9 +164,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             data.new_route_title = title;
         }
 
-        Msg::CreateNewRoute => {
+        Msg::CreateNewRoute(tick_type) => {
+            let id = RouteId::new_v4();
+
             data.routes.insert(
-                RouteId::new_v4(),
+                id,
                 Route {
                     title: mem::take(&mut data.new_route_title),
                     completed: false,
@@ -176,6 +178,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     grade: data.chosen_grade.clone(),
                 },
             );
+
+            if let Some(tick_type) = tick_type {
+                orders.send_msg(Msg::AddTickToRoute(id, tick_type));
+            };
+
             data.routes.sort_by(|_ak, av, _bk, bv| {
                 // TODO this concatenation seems inefficient, but I have no
                 // idea how to sort by multiple criteria
@@ -184,6 +191,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
                 return a.cmp(&b);
             });
+
             data.modal_open = false;
         }
         Msg::RemoveRoute(route_id) => {
@@ -359,7 +367,7 @@ fn view_modal(
                                 },
                                 keyboard_ev(Ev::KeyDown, |keyboard_event| {
                                     if keyboard_event.key_code() == ENTER_KEY {
-                                        Msg::CreateNewRoute
+                                        Msg::CreateNewRoute(None)
                                     } else {
                                         Msg::NoOp
                                     }
@@ -450,16 +458,32 @@ fn view_modal(
                     ],
                 ],
                 if editing_route.is_some() {
-                    button![
-                        class!["btn btn-primary new-route-button"],
-                        ev(Ev::Click, move |_| Msg::SaveEditingRoute),
-                        "Save Changes"
+                    div![
+                        class!["modal-buttons"],
+                        button![
+                            class!["btn btn-primary new-route-button"],
+                            ev(Ev::Click, move |_| Msg::SaveEditingRoute),
+                            "Save Changes"
+                        ]
                     ]
                 } else {
-                    button![
-                        class!["btn btn-primary new-route-button"],
-                        ev(Ev::Click, move |_| Msg::CreateNewRoute),
-                        "Add Route"
+                    div![
+                        class!["modal-buttons"],
+                        button![
+                            class!["btn btn-primary new-route-button"],
+                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(TickType::Send))),
+                            "SND"
+                        ],
+                        button![
+                            class!["btn new-route-button"],
+                            ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(TickType::Attempt))),
+                            "ATT"
+                        ],
+                        button![
+                            class!["btn btn-secondary new-route-button"],
+                            ev(Ev::Click, move |_| Msg::CreateNewRoute(None)),
+                            "Add Without Tick"
+                        ],
                     ]
                 }
             ],
