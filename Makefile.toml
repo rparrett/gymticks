@@ -1,7 +1,7 @@
 [env]
 # all workspace members can use this Makefile
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = "true"
-PORT = "8000"
+PORT = "8001"
 
 # ---- BUILD & CREATE WASMS ----
 [tasks.compile]
