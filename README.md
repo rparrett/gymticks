@@ -18,3 +18,4 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] sort grades in numerical ordery
 - [ ] sections and grades need to have some sort of sort order member
 - [ ] sections should be visually distinct (gap) when displayed
+- [ ] use the word "ascent" in source code for clarity
