@@ -608,18 +608,16 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
     let mut today = 0;
     let mut total = 0;
 
-    for route in routes.iter() {
-        for tick in &route.1.ticks {
-            match tick.typ {
-                TickType::Send if tick.timestamp > midnight => {
-                    today += 1;
-                    total += 1;
-                },
-                TickType::Send => {
-                    total += 1;
-                }
-                _ => {}
+    for tick in routes.iter().flat_map(|route| &route.1.ticks) {
+        match tick.typ {
+            TickType::Send if tick.timestamp > midnight => {
+                today += 1;
+                total += 1;
+            },
+            TickType::Send => {
+                total += 1;
             }
+            _ => {}
         }
     }
 
