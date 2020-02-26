@@ -533,13 +533,13 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
 
     let att_text = if num_attempts == 0 && num_sends == 0 {
         String::from("unattempted")
-    } else if last_send > last_attempt {
     } else if num_sends == 0 {
         format!(
             "{} att (att {})",
             num_attempts,
             util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
         )
+    } else if last_send >= last_attempt {
         format!(
             "{} att (snd {})",
             attempts_since_send,
