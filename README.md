@@ -19,3 +19,5 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] sections and grades need to have some sort of sort order member
 - [ ] sections should be visually distinct (gap) when displayed
 - [ ] use the word "ascent" in source code for clarity
+- [ ] move import/export somewhere else?
+- [ ] footer shouldn't be covered by navbar when there are no routes
