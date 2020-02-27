@@ -774,7 +774,7 @@ fn view_footer() -> Node<Msg> {
                 "export data",
                 ev(Ev::Click, move |_| Msg::ExportData()),
             ],
-            " ",
+            El::from_html("&nbsp;&middot;&nbsp;"),
             a![
                 attrs! {
                     At::Href => "#"
