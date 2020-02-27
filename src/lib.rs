@@ -28,7 +28,7 @@ use crate::section::Section;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-8";
+const STORAGE_KEY: &str = "gymticks-9";
 
 type RouteId = Uuid;
 
@@ -87,7 +87,7 @@ struct Tick {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 enum TickType {
-    Send = 0x00,
+    Ascent = 0x00,
     Attempt = 0x01,
 }
 
@@ -518,7 +518,7 @@ fn view_modal(
                         button![
                             class!["btn btn-primary new-route-button"],
                             ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(
-                                TickType::Send
+                                TickType::Ascent
                             ))),
                             "SND"
                         ],
@@ -580,73 +580,73 @@ fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> No
 }
 
 fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<Msg> {
-    let mut num_sends = 0;
+    let mut num_ascents = 0;
     let mut num_attempts = 0;
-    let mut attempts_to_send = 0;
-    let mut attempts_since_send = 0;
-    let mut last_send = 0;
+    let mut attempts_to_ascent = 0;
+    let mut attempts_since_ascent = 0;
+    let mut last_ascent = 0;
     let mut last_attempt = 0;
-    let mut _send_streak = 0;
+    let mut _ascent_streak = 0;
 
     // TODO: can we iterate our way out of this mess?
 
     for tick in &route.ticks {
         match tick.typ {
-            TickType::Send => {
-                last_send = tick.timestamp;
-                num_sends += 1;
-                attempts_since_send = 0;
-                _send_streak += 1;
+            TickType::Ascent => {
+                last_ascent = tick.timestamp;
+                num_ascents += 1;
+                attempts_since_ascent = 0;
+                _ascent_streak += 1;
             }
             TickType::Attempt => {
-                _send_streak = 0;
+                _ascent_streak = 0;
                 last_attempt = tick.timestamp;
                 num_attempts += 1;
-                if num_sends > 0 {
-                    attempts_since_send += 1;
+                if num_ascents > 0 {
+                    attempts_since_ascent += 1;
                 } else {
-                    attempts_to_send += 1;
+                    attempts_to_ascent += 1;
                 }
             }
         }
     }
 
-    let send_text = if num_sends == 0 {
+    let ascent_text = if num_ascents == 0 {
         String::from("unsent")
-    } else if attempts_to_send == 0 {
-        format!("{} snd (flsh)", num_sends)
-    } else if attempts_to_send > 0 {
-        format!("{} snd ({} att)", num_sends, attempts_to_send)
+    } else if attempts_to_ascent == 0 {
+        format!("{} snd (flsh)", num_ascents)
+    } else if attempts_to_ascent > 0 {
+        format!("{} snd ({} att)", num_ascents, attempts_to_ascent)
     } else {
         // unreachable?
         String::new()
     };
 
-    let att_text = if num_attempts == 0 && num_sends == 0 {
+    let att_text = if num_attempts == 0 && num_ascents == 0 {
         String::from("unattempted")
-    } else if num_sends == 0 {
+    } else if num_ascents == 0 {
         format!(
             "{} att (att {})",
             num_attempts,
             util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
         )
-    } else if last_send >= last_attempt {
+    } else if last_ascent >= last_attempt {
         format!(
             "{} att (snd {})",
-            attempts_since_send,
-            util::time_diff_in_words(Utc.timestamp(last_send.into(), 0), *time)
+            attempts_since_ascent,
+            util::time_diff_in_words(Utc.timestamp(last_ascent.into(), 0), *time)
         )
     } else {
         format!(
             "{} att (att {})",
-            attempts_since_send,
+            attempts_since_ascent,
             util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
         )
     };
 
     li![
         class![
-           "completed" => num_sends > 0
+           "completed" => num_ascents > 0
         ],
         div![
             class!["view"],
@@ -663,7 +663,7 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
                 class!["tick-button btn btn-primary"],
                 ev(
                     Ev::Click,
-                    enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Send))
+                    enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Ascent))
                 ),
                 "SND"
             ],
@@ -684,7 +684,7 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
             ],
             div![
                 class!["stats"],
-                div![class!["stats-sends"], send_text,],
+                div![class!["stats-ascents"], ascent_text,],
                 div![class!["stats-attempts"], att_text,],
             ],
             button![
@@ -707,11 +707,11 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
 
     for tick in routes.iter().flat_map(|route| &route.1.ticks) {
         match tick.typ {
-            TickType::Send if tick.timestamp > midnight => {
+            TickType::Ascent if tick.timestamp > midnight => {
                 today += 1;
                 total += 1;
             }
-            TickType::Send => {
+            TickType::Ascent => {
                 total += 1;
             }
             _ => {}
