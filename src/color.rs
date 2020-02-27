@@ -1,16 +1,16 @@
-use serde::{Deserialize, Serialize};
 use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Color {
     pub group: String,
     pub label: String,
-    pub sort: i32
+    pub sort: i32,
 }
 
 impl Color {
     pub fn defaults() -> IndexMap<String, Color> {
-        return indexmap!{
+        return indexmap! {
             "red".into() => Color { group: "A".into(), label: "red".into(), sort: 1 },
             "orange".into() => Color { group: "A".into(), label: "orange".into(), sort: 2 },
             "yellow".into() => Color { group: "A".into(), label: "yellow".into(), sort: 3 },
@@ -21,6 +21,6 @@ impl Color {
             "brown".into() => Color { group: "A".into(), label: "brown".into(), sort: 8 },
             "white".into() => Color { group: "A".into(), label: "white".into(), sort: 9 },
             "black".into() => Color { group: "A".into(), label: "black".into(), sort: 10 },
-        }
+        };
     }
 }

@@ -1,4 +1,5 @@
-#[macro_use] extern crate indexmap;
+#[macro_use]
+extern crate indexmap;
 extern crate serde_json;
 
 use chrono::{DateTime, TimeZone, Utc};
@@ -16,14 +17,14 @@ use std::mem;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;
 
-mod util;
+mod color;
 mod grade;
 mod section;
-mod color;
+mod util;
 
+use crate::color::Color;
 use crate::grade::Grade;
 use crate::section::Section;
-use crate::color::Color;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
@@ -115,7 +116,7 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
     data.settings = Settings {
         colors: Color::defaults(),
         sections: Section::defaults(),
-        grades: Grade::defaults()
+        grades: Grade::defaults(),
     };
 
     // TODO unwrap_or with default values instead of this nonsense?
@@ -170,7 +171,7 @@ enum Msg {
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
-//    let mut data = &mut model.data;
+    //    let mut data = &mut model.data;
     let mut new_data: Data;
 
     match msg {
@@ -200,15 +201,24 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             let settings = &model.data.settings;
 
             model.data.routes.sort_by(|_ak, av, _bk, bv| {
-                return settings.sections.get(&av.section).map_or(0i32, |s| s.sort)
+                return settings
+                    .sections
+                    .get(&av.section)
+                    .map_or(0i32, |s| s.sort)
                     .cmp(&settings.sections.get(&bv.section).map_or(0i32, |s| s.sort))
                     .then(
-                        settings.colors.get(&av.color).map_or(0i32, |s| s.sort)
-                            .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort))
+                        settings
+                            .colors
+                            .get(&av.color)
+                            .map_or(0i32, |s| s.sort)
+                            .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort)),
                     )
                     .then(
-                        settings.grades.get(&av.grade).map_or(0i32, |s| s.sort)
-                            .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort))
+                        settings
+                            .grades
+                            .get(&av.grade)
+                            .map_or(0i32, |s| s.sort)
+                            .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort)),
                     )
                     .then(av.title.cmp(&bv.title));
             });
@@ -238,19 +248,28 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     route.section = model.data.chosen_section.clone();
                     route.grade = model.data.chosen_grade.clone();
 
-                    // TODO: this code is duplicated. 
+                    // TODO: this code is duplicated.
                     let settings = &model.data.settings;
 
                     model.data.routes.sort_by(|_ak, av, _bk, bv| {
-                        return settings.sections.get(&av.section).map_or(0i32, |s| s.sort)
+                        return settings
+                            .sections
+                            .get(&av.section)
+                            .map_or(0i32, |s| s.sort)
                             .cmp(&settings.sections.get(&bv.section).map_or(0i32, |s| s.sort))
                             .then(
-                                settings.colors.get(&av.color).map_or(0i32, |s| s.sort)
-                                    .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort))
+                                settings
+                                    .colors
+                                    .get(&av.color)
+                                    .map_or(0i32, |s| s.sort)
+                                    .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort)),
                             )
                             .then(
-                                settings.grades.get(&av.grade).map_or(0i32, |s| s.sort)
-                                    .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort))
+                                settings
+                                    .grades
+                                    .get(&av.grade)
+                                    .map_or(0i32, |s| s.sort)
+                                    .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort)),
                             )
                             .then(av.title.cmp(&bv.title));
                     });
@@ -372,7 +391,7 @@ fn view_modal(
     chosen_grade: &String,
     colors: &IndexMap<String, Color>,
     sections: &IndexMap<String, Section>,
-    grades: &IndexMap<String, Grade>
+    grades: &IndexMap<String, Grade>,
 ) -> Node<Msg> {
     div![
         class!["modal", "active" => modal_open],
@@ -412,53 +431,76 @@ fn view_modal(
                     ],],
                     div![
                         class!["color-chooser",],
-                        colors.iter().map(|(key, _color)| {
-                            div![
-                                class![
-                                   key.as_ref(),
-                                   "active" => chosen_color == key
-                                ],
-                                simple_ev(Ev::Click, Msg::ChooseColor(key.to_string()))
-                            ]
-                        }).collect::<Vec<Node<Msg>>>()
+                        colors
+                            .iter()
+                            .map(|(key, _color)| {
+                                div![
+                                    class![
+                                       key.as_ref(),
+                                       "active" => chosen_color == key
+                                    ],
+                                    simple_ev(Ev::Click, Msg::ChooseColor(key.to_string()))
+                                ]
+                            })
+                            .collect::<Vec<Node<Msg>>>()
                     ],
                     div![
                         class!["section-chooser",],
-                        sections.iter().group_by(|(_k, v)| v.group.to_owned()).into_iter().map(|(_key, group)| {
-                            div![
-                                class!["section-chooser-row"],
-                                group.map(|(key, _section)| {
-                                    div![
-                                        class![
-                                           key.as_ref(),
-                                           "active" => chosen_section == key,
-                                           "section-chooser-item"
-                                        ],
-                                        simple_ev(Ev::Click, Msg::ChooseSection(key.to_string())),
-                                        key
-                                    ]
-                                }).collect::<Vec<Node<Msg>>>()
-                            ]
-                        }).collect::<Vec<Node<Msg>>>(),
+                        sections
+                            .iter()
+                            .group_by(|(_k, v)| v.group.to_owned())
+                            .into_iter()
+                            .map(|(_key, group)| {
+                                div![
+                                    class!["section-chooser-row"],
+                                    group
+                                        .map(|(key, _section)| {
+                                            div![
+                                                class![
+                                                   key.as_ref(),
+                                                   "active" => chosen_section == key,
+                                                   "section-chooser-item"
+                                                ],
+                                                simple_ev(
+                                                    Ev::Click,
+                                                    Msg::ChooseSection(key.to_string())
+                                                ),
+                                                key
+                                            ]
+                                        })
+                                        .collect::<Vec<Node<Msg>>>()
+                                ]
+                            })
+                            .collect::<Vec<Node<Msg>>>(),
                     ],
                     div![
                         class!["section-chooser",],
-                        grades.iter().group_by(|(_k, v)| v.group.to_owned()).into_iter().map(|(_key, group)| {
-                            div![
-                                class!["section-chooser-row"],
-                                group.map(|(key, _grade)| {
-                                    div![
-                                        class![
-                                           key.as_ref(),
-                                           "active" => chosen_grade == key,
-                                           "section-chooser-item"
-                                        ],
-                                        simple_ev(Ev::Click, Msg::ChooseGrade(key.to_string())),
-                                        key
-                                    ]
-                                }).collect::<Vec<Node<Msg>>>()
-                            ]
-                        }).collect::<Vec<Node<Msg>>>()
+                        grades
+                            .iter()
+                            .group_by(|(_k, v)| v.group.to_owned())
+                            .into_iter()
+                            .map(|(_key, group)| {
+                                div![
+                                    class!["section-chooser-row"],
+                                    group
+                                        .map(|(key, _grade)| {
+                                            div![
+                                                class![
+                                                   key.as_ref(),
+                                                   "active" => chosen_grade == key,
+                                                   "section-chooser-item"
+                                                ],
+                                                simple_ev(
+                                                    Ev::Click,
+                                                    Msg::ChooseGrade(key.to_string())
+                                                ),
+                                                key
+                                            ]
+                                        })
+                                        .collect::<Vec<Node<Msg>>>()
+                                ]
+                            })
+                            .collect::<Vec<Node<Msg>>>()
                     ],
                 ],
                 if editing_route.is_some() {
@@ -514,7 +556,8 @@ fn view_routes(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
             .iter()
             .filter_map(|(route_id, route)| { Some(view_route(route_id, route, &time,)) })
             .collect::<Vec<Node<Msg>>>()
-    ]}
+    ]
+}
 
 fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<Msg> {
     let mut num_sends = 0;
@@ -573,7 +616,7 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
             attempts_since_send,
             util::time_diff_in_words(Utc.timestamp(last_send.into(), 0), *time)
         )
-    } else { 
+    } else {
         format!(
             "{} att (att {})",
             attempts_since_send,
@@ -647,7 +690,7 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
             TickType::Send if tick.timestamp > midnight => {
                 today += 1;
                 total += 1;
-            },
+            }
             TickType::Send => {
                 total += 1;
             }
@@ -657,18 +700,15 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
 
     div![
         class!["aggregate", "card"],
-        div![class!["card-header"], div![class!["h5", "card-title"], "Stats"]],
+        div![
+            class!["card-header"],
+            div![class!["h5", "card-title"], "Stats"]
+        ],
         div![
             class!["card-body"],
             table![
-                tr![
-                    td!["Sends Today"],
-                    td![format!("{}", today)]
-                ],
-                tr![
-                    td!["Sends Total"],
-                    td![format!("{}", total)]
-                ]
+                tr![td!["Sends Today"], td![format!("{}", today)]],
+                tr![td!["Sends Total"], td![format!("{}", total)]]
             ],
         ]
     ]

@@ -1,16 +1,16 @@
-use serde::{Deserialize, Serialize};
 use indexmap::IndexMap;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Section {
     pub group: String,
     pub label: String,
-    pub sort: i32
+    pub sort: i32,
 }
 
 impl Section {
     pub fn defaults() -> IndexMap<String, Section> {
-        return indexmap!{
+        return indexmap! {
             "AB1".into() => Section { group: "A".into(), label: "AB1".into(), sort: 1 },
             "AB2".into() => Section { group: "A".into(), label: "AB2".into(), sort: 2 },
             "AB3".into() => Section { group: "A".into(), label: "AB3".into(), sort: 3 },
@@ -26,6 +26,6 @@ impl Section {
             "ROF".into() => Section { group: "B".into(), label: "ROF".into(), sort: 13 },
             "GLB".into() => Section { group: "B".into(), label: "GLB".into(), sort: 14 },
             "VRT".into() => Section { group: "B".into(), label: "VRT".into(), sort: 15 }
-        }
+        };
     }
 }
