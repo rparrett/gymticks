@@ -544,17 +544,37 @@ fn view_modal(
 // ------ main ------
 
 fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
-    section![class!["main card"], div![view_routes(routes)]]
+    section![
+        routes
+            .iter()
+            .group_by(|(_k, v)| v.section.to_owned())
+            .into_iter()
+            .map(|(_k, group)| {
+                let route_ids = group.into_iter().map(|(k, _v)| k.clone()).collect();
+
+                div![
+                    class!["main card"],
+                    div![view_routes(routes, route_ids)]
+                ]
+            })
+            .collect::<Vec<Node<Msg>>>()
+    ]
 }
 
-fn view_routes(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
+fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> Node<Msg> {
     let time = Utc.timestamp(unixTimestamp().into(), 0);
 
     ul![
         class!["route-list"],
-        routes
+        route_ids
             .iter()
-            .filter_map(|(route_id, route)| { Some(view_route(route_id, route, &time,)) })
+            .filter_map(|route_id| {
+                if let Some(route) = routes.get(route_id) {
+                    Some(view_route(route_id, route, &time,))
+                } else {
+                    None
+                }
+            })
             .collect::<Vec<Node<Msg>>>()
     ]
 }
