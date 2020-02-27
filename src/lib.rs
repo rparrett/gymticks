@@ -705,14 +705,6 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
                 class!["stats"],
                 div![class!["stats-ascents"], ascent_text,],
                 div![class!["stats-attempts"], att_text,],
-            ],
-            button![
-                class!["btn btn-error"],
-                i![class!["icon icon-cross"]],
-                ev(
-                    Ev::Click,
-                    enc!((route_id) move |_| Msg::RemoveRoute(route_id))
-                )
             ]
         ],
     ]
