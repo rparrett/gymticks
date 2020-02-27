@@ -28,7 +28,7 @@ use crate::section::Section;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-9";
+const STORAGE_KEY: &str = "gymticks-10";
 
 type RouteId = Uuid;
 
@@ -76,6 +76,7 @@ struct Route {
     section: String,
     grade: String,
     ticks: Vec<Tick>,
+    retired: bool,
 }
 
 // ------ Tick -----
@@ -153,6 +154,7 @@ enum Msg {
 
     StartRouteEdit(RouteId),
     SaveEditingRoute,
+    RetireEditingRoute,
 
     AddTickToRoute(RouteId, TickType),
 
@@ -191,6 +193,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     color: model.data.chosen_color.clone(),
                     section: model.data.chosen_section.clone(),
                     grade: model.data.chosen_grade.clone(),
+                    retired: false,
                 },
             );
 
@@ -273,6 +276,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                             )
                             .then(av.title.cmp(&bv.title));
                     });
+                }
+            }
+
+            model.data.modal_open = false;
+            model.data.editing_route = None;
+        }
+        Msg::RetireEditingRoute => {
+            if let Some(editing_route) = model.data.editing_route.take() {
+                if let Some(route) = model.data.routes.get_mut(&editing_route) {
+                    route.retired = true;
                 }
             }
 
@@ -508,9 +521,14 @@ fn view_modal(
                         class!["modal-buttons"],
                         button![
                             class!["btn btn-primary new-route-button"],
-                            ev(Ev::Click, move |_| Msg::SaveEditingRoute),
+                            simple_ev(Ev::Click, Msg::SaveEditingRoute),
                             "Save Changes"
-                        ]
+                        ],
+                        button![
+                            class!["btn btn-error new-route-button"],
+                            simple_ev(Ev::Click, Msg::RetireEditingRoute),
+                            "Retire Route"
+                        ],
                     ]
                 } else {
                     div![
@@ -547,6 +565,7 @@ fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
     section![
         routes
             .iter()
+            .filter(|(_k, v)| !v.retired)
             .group_by(|(_k, v)| v.section.to_owned())
             .into_iter()
             .map(|(_k, group)| {
