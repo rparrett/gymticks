@@ -751,7 +751,7 @@ fn view_footer() -> Node<Msg> {
     footer![
         class!["footer", "grid-sm", "info"],
         p![
-            "Created by ",
+            "created by ",
             a![
                 attrs! {
                     At::Href => "https://github.com/rparrett/"
