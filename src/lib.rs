@@ -28,7 +28,7 @@ use crate::section::Section;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
-const STORAGE_KEY: &str = "gymticks-10";
+const STORAGE_KEY: &str = "gymticks-11";
 
 type RouteId = Uuid;
 
