@@ -15,4 +15,3 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] undo button
 - [ ] separate persistent and non-persistent app state
 - [ ] move import/export somewhere else?
-- [ ] footer shouldn't be covered by navbar when there are no routes
