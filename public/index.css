@@ -2,6 +2,9 @@ html,
 body {
     touch-action: manipulation;
 }
+body {
+    padding-top: 58px;
+}
 
 .main.card,
 .aggregate.card
@@ -9,7 +12,7 @@ body {
     border: 0;
     box-shadow: 0 0.25rem 0.5rem rgba(48,55,66,.15);
     height: 100%;
-    margin-top: 12px;
+    margin-bottom: 12px;
 }
 
 .loading-container {
@@ -218,7 +221,6 @@ body {
 }
 
 #app>div.container {
-    margin-top: 58px;
     padding: 0px;
 }
 
