@@ -254,3 +254,7 @@ header.navbar {
 .description-and-flag input {
     flex: 1;
 }
+
+.import-file-input {
+    display: none;
+}

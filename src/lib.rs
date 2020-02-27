@@ -1,3 +1,5 @@
+extern crate serde_json;
+
 use chrono::{DateTime, TimeZone, Utc};
 use enclose::enc;
 use indexmap::IndexMap;
@@ -7,6 +9,7 @@ use seed::{
     *,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Result;
 use std::mem;
 use uuid::Uuid;
 use web_sys::HtmlInputElement;
@@ -64,7 +67,7 @@ struct Services {
 
 // ------ Route ------
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Route {
     title: String,
     completed: bool,
@@ -75,13 +78,13 @@ struct Route {
 }
 
 // ------ Tick -----
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Tick {
     typ: TickType,
     timestamp: i32,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 enum TickType {
     Send = 0x00,
     Attempt = 0x01,
@@ -152,28 +155,34 @@ enum Msg {
     OpenModal(),
     CloseModal(),
 
+    ExportData(),
+    StartImportData(),
+    ImportData(String),
+
     NoOp,
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
-    let data = &mut model.data;
+//    let mut data = &mut model.data;
+    let mut new_data: Data;
+
     match msg {
         Msg::NewRouteTitleChanged(title) => {
-            data.new_route_title = title;
+            model.data.new_route_title = title;
         }
 
         Msg::CreateNewRoute(tick_type) => {
             let id = RouteId::new_v4();
 
-            data.routes.insert(
+            model.data.routes.insert(
                 id,
                 Route {
-                    title: mem::take(&mut data.new_route_title),
+                    title: mem::take(&mut model.data.new_route_title),
                     completed: false,
                     ticks: Vec::new(),
-                    color: data.chosen_color.clone(),
-                    section: data.chosen_section.clone(),
-                    grade: data.chosen_grade.clone(),
+                    color: model.data.chosen_color.clone(),
+                    section: model.data.chosen_section.clone(),
+                    grade: model.data.chosen_grade.clone(),
                 },
             );
 
@@ -181,7 +190,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 orders.send_msg(Msg::AddTickToRoute(id, tick_type));
             };
 
-            data.routes.sort_by(|_ak, av, _bk, bv| {
+            model.data.routes.sort_by(|_ak, av, _bk, bv| {
                 return av
                     .section
                     .cmp(&bv.section)
@@ -190,35 +199,35 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     .then(av.title.cmp(&bv.title));
             });
 
-            data.modal_open = false;
+            model.data.modal_open = false;
         }
         Msg::RemoveRoute(route_id) => {
-            data.routes.shift_remove(&route_id);
+            model.data.routes.shift_remove(&route_id);
         }
 
         Msg::StartRouteEdit(route_id) => {
-            if let Some(route) = data.routes.get(&route_id) {
-                data.editing_route = Some(route_id);
-                data.chosen_color = route.color.clone();
-                data.chosen_section = route.section.clone();
-                data.chosen_grade = route.grade.clone();
-                data.new_route_title = route.title.clone();
+            if let Some(route) = model.data.routes.get(&route_id) {
+                model.data.editing_route = Some(route_id);
+                model.data.chosen_color = route.color.clone();
+                model.data.chosen_section = route.section.clone();
+                model.data.chosen_grade = route.grade.clone();
+                model.data.new_route_title = route.title.clone();
             }
 
-            data.modal_open = true;
+            model.data.modal_open = true;
         }
         Msg::SaveEditingRoute => {
-            if let Some(editing_route) = data.editing_route.take() {
-                if let Some(route) = data.routes.get_mut(&editing_route) {
-                    route.title = mem::take(&mut data.new_route_title);
-                    route.color = data.chosen_color.clone();
-                    route.section = data.chosen_section.clone();
-                    route.grade = data.chosen_grade.clone();
+            if let Some(editing_route) = model.data.editing_route.take() {
+                if let Some(route) = model.data.routes.get_mut(&editing_route) {
+                    route.title = mem::take(&mut model.data.new_route_title);
+                    route.color = model.data.chosen_color.clone();
+                    route.section = model.data.chosen_section.clone();
+                    route.grade = model.data.chosen_grade.clone();
 
                     // TODO: this code is duplicated. can we just implement some
                     // trait for a Route and use .sort? We might want different
                     // sort options though.
-                    data.routes.sort_by(|_ak, av, _bk, bv| {
+                    model.data.routes.sort_by(|_ak, av, _bk, bv| {
                         return av
                             .section
                             .cmp(&bv.section)
@@ -229,48 +238,66 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 }
             }
 
-            data.modal_open = false;
-            data.editing_route = None;
+            model.data.modal_open = false;
+            model.data.editing_route = None;
         }
 
         Msg::AddTickToRoute(route_id, typ) => {
-            if let Some(route) = data.routes.get_mut(&route_id) {
+            if let Some(route) = model.data.routes.get_mut(&route_id) {
                 let timestamp = unixTimestamp();
                 route.ticks.push(Tick { typ, timestamp });
             }
         }
 
         Msg::ChooseColor(color) => {
-            data.chosen_color = color;
+            model.data.chosen_color = color;
         }
 
         Msg::ChooseSection(section) => {
-            data.chosen_section = section;
+            model.data.chosen_section = section;
         }
 
         Msg::ChooseGrade(grade) => {
-            data.chosen_grade = grade;
+            model.data.chosen_grade = grade;
         }
 
         Msg::OpenModal() => {
-            data.modal_open = true;
+            model.data.modal_open = true;
         }
 
         Msg::CloseModal() => {
-            data.modal_open = false;
+            model.data.modal_open = false;
+        }
+
+        Msg::ExportData() => {
+            if let Ok(json) = serde_json::to_string(&model.data) {
+                exportData(json);
+            }
+        }
+
+        Msg::StartImportData() => {
+            startImportData();
+        }
+
+        Msg::ImportData(json) => {
+            // TODO fail less silently
+            if let Ok(new_data) = serde_json::from_str(&json) {
+                mem::replace(&mut model.data, new_data);
+            }
         }
 
         Msg::NoOp => (),
     }
+
     // Save data into LocalStorage. It should be optimized in a real-world application.
-    storage::store_data(&model.services.local_storage, STORAGE_KEY, &data);
+    storage::store_data(&model.services.local_storage, STORAGE_KEY, &model.data);
 }
 
 // ------ ------
 //     View
 // ------ ------
 
-fn view(model: &Model) -> impl View<Msg> {
+fn view(model: &Model) -> Vec<Node<Msg>> {
     let data = &model.data;
     nodes![
         header![
@@ -665,6 +692,23 @@ fn view_footer() -> Node<Msg> {
                     At::Href => "https://github.com/seed-rs/"
                 },
                 "seed-rs"
+            ],
+        ],
+        p![
+            a![
+                attrs! {
+                    At::Href => "#"
+                },
+                "export data",
+                ev(Ev::Click, move |_| Msg::ExportData()),
+            ],
+            " ",
+            a![
+                attrs! {
+                    At::Href => "#"
+                },
+                "import data",
+                ev(Ev::Click, move |_| Msg::StartImportData()),
             ]
         ]
     ]
@@ -674,16 +718,42 @@ fn view_footer() -> Node<Msg> {
 extern "C" {
     fn unixTimestamp() -> i32;
     fn midnight() -> i32;
+    fn exportData(data: String);
+    fn startImportData();
 }
 
 // ------ ------
 //     Start
 // ------ ------
 
-#[wasm_bindgen(start)]
-pub fn render() {
-    App::builder(update, view)
+#[wasm_bindgen]
+pub fn start() -> Box<[JsValue]> {
+    let app = App::builder(update, view)
         .before_mount(before_mount)
         .after_mount(after_mount)
         .build_and_start();
+
+    create_closures_for_js(&app)
+}
+
+fn create_closures_for_js(app: &App<Msg, Model, Vec<Node<Msg>>>) -> Box<[JsValue]> {
+    let import_data = wrap_in_permanent_closure(enc!((app) move |data| {
+        app.update(Msg::ImportData(data))
+    }));
+
+    vec![import_data].into_boxed_slice()
+}
+
+fn wrap_in_permanent_closure<T>(f: impl FnMut(T) + 'static) -> JsValue
+where
+    T: wasm_bindgen::convert::FromWasmAbi + 'static,
+{
+    // `Closure::new` isn't in `stable` Rust (yet) - it's a custom implementation from Seed.
+    // If you need more flexibility, use `Closure::wrap`.
+    let closure = Closure::new(f);
+    let closure_as_js_value = closure.as_ref().clone();
+    // `forget` leaks `Closure` - we should use it only when
+    // we want to call given `Closure` more than once.
+    closure.forget();
+    closure_as_js_value
 }

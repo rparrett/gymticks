@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="/public/spectre.min.css" />
     <link rel="stylesheet" href="/public/spectre-icons.min.css" />
 
+    <script type="text/javascript" src="/public/FileSaver.min.js"></script>
+
     <!-- Because of Edge, see https://github.com/samthor/fast-text-encoding -->
     <script type="text/javascript" src="/public/text-polyfill.min.js"></script>
   </head>
@@ -19,12 +21,38 @@
     </section>
 
     <script type="module">
-      window.unixTimestamp = () => { return Math.floor(Date.now() / 1000); }
-      window.midnight = () => { return Math.floor((new Date()).setHours(0) / 1000); }
+        window.unixTimestamp = () => { return Math.floor(Date.now() / 1000); }
+        window.midnight = () => { return Math.floor((new Date()).setHours(0) / 1000); }
+        window.exportData = (data) => {
+            var blob = new Blob([data], { type: "text/json;charset=utf-8" });
+            saveAs(blob, "test.json");
+        }
+        window.startImportData = () => {
+            var i = document.createElement('input');
+            i.setAttribute('type', 'file');
+            i.classList.add('import-file-input');
+            i.addEventListener('change', (evt) => {
+                var file = evt.target.files[0];
+                var reader = new FileReader();
+                reader.onload = e => {
+                    app.import_data(e.target.result);
+                }
+                reader.readAsText(file);
+            });
+            document.body.appendChild(i);
+            i.click();
+        }
 
       // https://rustwasm.github.io/docs/wasm-bindgen/examples/without-a-bundler.html
       import init from '/pkg/package.js';
-      init('/pkg/package_bg.wasm?3');
+      import { start} from '/pkg/package.js';
+      init('/pkg/package_bg.wasm?5').then(() => {
+        const [import_data] = start();
+        const app = {
+            import_data
+        };
+        window.app = app;
+      });
     </script>
   </body>
 </html>
