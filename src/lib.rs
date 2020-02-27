@@ -1,8 +1,10 @@
+#[macro_use] extern crate indexmap;
 extern crate serde_json;
 
 use chrono::{DateTime, TimeZone, Utc};
 use enclose::enc;
 use indexmap::IndexMap;
+use itertools::Itertools;
 use seed::{
     browser::service::storage::{self, Storage},
     prelude::*,
@@ -15,29 +17,19 @@ use uuid::Uuid;
 use web_sys::HtmlInputElement;
 
 mod util;
+mod grade;
+mod section;
+mod color;
+
+use crate::grade::Grade;
+use crate::section::Section;
+use crate::color::Color;
 
 const ENTER_KEY: u32 = 13;
 const ESC_KEY: u32 = 27;
 const STORAGE_KEY: &str = "gymticks-8";
 
 type RouteId = Uuid;
-
-const COLORS: [&str; 10] = [
-    //    "orange", "red", "pink", "purple", "blue", "brown", "yellow", "green", "white", "black",
-    "red", "orange", "yellow", "green", "blue", "purple", "pink", "brown", "white", "black",
-];
-
-const SECTIONS: [&str; 8] = ["AB1", "AB2", "AB3", "AB4", "AB5", "AB6", "AB7", "AB8"];
-
-const BOULDERSECTIONS: [&str; 7] = ["VRT", "GLB", "ROF", "RWV", "CAN", "LWF", "SLB"];
-
-const ROUTEGRADES: [&str; 14] = [
-    "5", "6", "7", "8", "9", "10-", "10", "10+", "11-", "11", "11+", "12-", "12", "12+",
-];
-
-const BOULDERGRADES: [&str; 11] = [
-    "V0-", "V0", "V0+", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "?",
-];
 
 // ------ ------
 //     Model
@@ -53,12 +45,20 @@ struct Model {
 #[derive(Default, Serialize, Deserialize)]
 struct Data {
     routes: IndexMap<RouteId, Route>,
+    settings: Settings,
     new_route_title: String,
     editing_route: Option<RouteId>,
     chosen_color: String,
     chosen_section: String,
     chosen_grade: String,
     modal_open: bool,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+struct Settings {
+    grades: IndexMap<String, Grade>,
+    sections: IndexMap<String, Section>,
+    colors: IndexMap<String, Color>,
 }
 
 struct Services {
@@ -78,13 +78,13 @@ struct Route {
 }
 
 // ------ Tick -----
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 struct Tick {
     typ: TickType,
     timestamp: i32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 enum TickType {
     Send = 0x00,
     Attempt = 0x01,
@@ -112,15 +112,21 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
     let local_storage = storage::get_storage().expect("get `LocalStorage`");
     let mut data: Data = storage::load_data(&local_storage, STORAGE_KEY).unwrap_or_default();
 
+    data.settings = Settings {
+        colors: Color::defaults(),
+        sections: Section::defaults(),
+        grades: Grade::defaults()
+    };
+
     // TODO unwrap_or with default values instead of this nonsense?
     if data.chosen_color.is_empty() {
-        data.chosen_color = COLORS[0].to_string();
+        data.chosen_color = data.settings.colors.iter().next().unwrap().0.to_string();
     }
     if data.chosen_section.is_empty() {
-        data.chosen_section = SECTIONS[0].to_string();
+        data.chosen_section = data.settings.sections.iter().next().unwrap().0.to_string();
     }
     if data.chosen_grade.is_empty() {
-        data.chosen_grade = ROUTEGRADES[0].to_string();
+        data.chosen_grade = data.settings.grades.iter().next().unwrap().0.to_string();
     }
 
     // TODO actually this, and the stuff above don't really need to be persisted at all.
@@ -137,6 +143,7 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
 //    Update
 // ------ ------
 
+#[derive(Clone)]
 enum Msg {
     NewRouteTitleChanged(String),
 
@@ -190,12 +197,19 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 orders.send_msg(Msg::AddTickToRoute(id, tick_type));
             };
 
+            let settings = &model.data.settings;
+
             model.data.routes.sort_by(|_ak, av, _bk, bv| {
-                return av
-                    .section
-                    .cmp(&bv.section)
-                    .then(av.color.cmp(&bv.color))
-                    .then(av.grade.cmp(&bv.grade))
+                return settings.sections.get(&av.section).map_or(0i32, |s| s.sort)
+                    .cmp(&settings.sections.get(&bv.section).map_or(0i32, |s| s.sort))
+                    .then(
+                        settings.colors.get(&av.color).map_or(0i32, |s| s.sort)
+                            .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort))
+                    )
+                    .then(
+                        settings.grades.get(&av.grade).map_or(0i32, |s| s.sort)
+                            .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort))
+                    )
                     .then(av.title.cmp(&bv.title));
             });
 
@@ -224,17 +238,22 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     route.section = model.data.chosen_section.clone();
                     route.grade = model.data.chosen_grade.clone();
 
-                    // TODO: this code is duplicated. can we just implement some
-                    // trait for a Route and use .sort? We might want different
-                    // sort options though.
+                    // TODO: this code is duplicated. 
+                    let settings = &model.data.settings;
+
                     model.data.routes.sort_by(|_ak, av, _bk, bv| {
-                        return av
-                            .section
-                            .cmp(&bv.section)
-                            .then(av.color.cmp(&bv.color))
-                            .then(av.grade.cmp(&bv.grade))
+                        return settings.sections.get(&av.section).map_or(0i32, |s| s.sort)
+                            .cmp(&settings.sections.get(&bv.section).map_or(0i32, |s| s.sort))
+                            .then(
+                                settings.colors.get(&av.color).map_or(0i32, |s| s.sort)
+                                    .cmp(&settings.colors.get(&bv.color).map_or(0i32, |s| s.sort))
+                            )
+                            .then(
+                                settings.grades.get(&av.grade).map_or(0i32, |s| s.sort)
+                                    .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort))
+                            )
                             .then(av.title.cmp(&bv.title));
-                    })
+                    });
                 }
             }
 
@@ -334,7 +353,10 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             &data.editing_route,
             &data.chosen_color,
             &data.chosen_section,
-            &data.chosen_grade
+            &data.chosen_grade,
+            &data.settings.colors,
+            &data.settings.sections,
+            &data.settings.grades,
         ),
     ]
 }
@@ -348,6 +370,9 @@ fn view_modal(
     chosen_color: &String,
     chosen_section: &String,
     chosen_grade: &String,
+    colors: &IndexMap<String, Color>,
+    sections: &IndexMap<String, Section>,
+    grades: &IndexMap<String, Grade>
 ) -> Node<Msg> {
     div![
         class!["modal", "active" => modal_open],
@@ -387,77 +412,53 @@ fn view_modal(
                     ],],
                     div![
                         class!["color-chooser",],
-                        COLORS.iter().filter_map(|hex| {
-                            Some(div![
+                        colors.iter().map(|(key, _color)| {
+                            div![
                                 class![
-                                   hex.as_ref(),
-                                   "active" => chosen_color == hex
+                                   key.as_ref(),
+                                   "active" => chosen_color == key
                                 ],
-                                ev(Ev::Click, move |_| Msg::ChooseColor(hex.to_string()))
-                            ])
-                        })
+                                simple_ev(Ev::Click, Msg::ChooseColor(key.to_string()))
+                            ]
+                        }).collect::<Vec<Node<Msg>>>()
                     ],
                     div![
                         class!["section-chooser",],
-                        div![
-                            class!["section-chooser-row"],
-                            SECTIONS.iter().filter_map(|abbrev| {
-                                Some(div![
-                                    class![
-                                       abbrev.as_ref(),
-                                       "active" => chosen_section == abbrev,
-                                       "section-chooser-item"
-                                    ],
-                                    ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
-                                    abbrev
-                                ])
-                            })
-                        ],
-                        div![
-                            class!["section-chooser-row"],
-                            BOULDERSECTIONS.iter().filter_map(|abbrev| {
-                                Some(div![
-                                    class![
-                                       abbrev.as_ref(),
-                                       "active" => chosen_section == abbrev,
-                                       "section-chooser-item"
-                                    ],
-                                    ev(Ev::Click, move |_| Msg::ChooseSection(abbrev.to_string())),
-                                    abbrev
-                                ])
-                            })
-                        ]
+                        sections.iter().group_by(|(_k, v)| v.group.to_owned()).into_iter().map(|(_key, group)| {
+                            div![
+                                class!["section-chooser-row"],
+                                group.map(|(key, _section)| {
+                                    div![
+                                        class![
+                                           key.as_ref(),
+                                           "active" => chosen_section == key,
+                                           "section-chooser-item"
+                                        ],
+                                        simple_ev(Ev::Click, Msg::ChooseSection(key.to_string())),
+                                        key
+                                    ]
+                                }).collect::<Vec<Node<Msg>>>()
+                            ]
+                        }).collect::<Vec<Node<Msg>>>(),
                     ],
                     div![
                         class!["section-chooser",],
-                        div![
-                            class!["section-chooser-row"],
-                            ROUTEGRADES.iter().filter_map(|grade| {
-                                Some(div![
-                                    class![
-                                       grade.as_ref(),
-                                       "active" => chosen_grade == grade,
-                                       "section-chooser-item"
-                                    ],
-                                    ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
-                                    grade
-                                ])
-                            })
-                        ],
-                        div![
-                            class!["section-chooser-row"],
-                            BOULDERGRADES.iter().filter_map(|grade| {
-                                Some(div![
-                                    class![
-                                       grade.as_ref(),
-                                       "active" => chosen_grade == grade,
-                                       "section-chooser-item"
-                                    ],
-                                    ev(Ev::Click, move |_| Msg::ChooseGrade(grade.to_string())),
-                                    grade
-                                ])
-                            })
-                        ]
+                        grades.iter().group_by(|(_k, v)| v.group.to_owned()).into_iter().map(|(_key, group)| {
+                            div![
+                                class!["section-chooser-row"],
+                                group.map(|(key, _grade)| {
+                                    div![
+                                        class![
+                                           key.as_ref(),
+                                           "active" => chosen_grade == key,
+                                           "section-chooser-item"
+                                        ],
+                                        simple_ev(Ev::Click, Msg::ChooseGrade(key.to_string())),
+                                        key
+                                    ]
+                                }).collect::<Vec<Node<Msg>>>()
+                            ]
+                        }).collect::<Vec<Node<Msg>>>()
                     ],
                 ],
                 if editing_route.is_some() {
@@ -512,8 +513,8 @@ fn view_routes(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
         routes
             .iter()
             .filter_map(|(route_id, route)| { Some(view_route(route_id, route, &time,)) })
-    ]
-}
+            .collect::<Vec<Node<Msg>>>()
+    ]}
 
 fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<Msg> {
     let mut num_sends = 0;
