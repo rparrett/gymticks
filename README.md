@@ -6,7 +6,6 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 
 ## TODO
 
-- [ ] retire route
 - [ ] flag a route (as a project)?
 - [ ] star a route?
 - [ ] better style for grade/section selector
@@ -15,9 +14,5 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] some sort of animation when modifying, sending, or adding a route
 - [ ] undo button
 - [ ] separate persistent and non-persistent app state
-- [ ] sort grades in numerical ordery
-- [ ] sections and grades need to have some sort of sort order member
-- [ ] sections should be visually distinct (gap) when displayed
-- [ ] use the word "ascent" in source code for clarity
 - [ ] move import/export somewhere else?
 - [ ] footer shouldn't be covered by navbar when there are no routes
