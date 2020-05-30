@@ -12,10 +12,8 @@ use seed::{
     *,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Result;
 use std::mem;
 use uuid::Uuid;
-use web_sys::HtmlInputElement;
 
 mod color;
 mod grade;
@@ -27,7 +25,6 @@ use crate::grade::Grade;
 use crate::section::Section;
 
 const ENTER_KEY: u32 = 13;
-const ESC_KEY: u32 = 27;
 const STORAGE_KEY: &str = "gymticks-11";
 
 type RouteId = Uuid;
@@ -150,7 +147,6 @@ enum Msg {
     NewRouteTitleChanged(String),
 
     CreateNewRoute(Option<TickType>),
-    RemoveRoute(RouteId),
 
     StartRouteEdit(RouteId),
     SaveEditingRoute,
@@ -173,9 +169,6 @@ enum Msg {
 }
 
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
-    //    let mut data = &mut model.data;
-    let mut new_data: Data;
-
     match msg {
         Msg::NewRouteTitleChanged(title) => {
             model.data.new_route_title = title;
@@ -227,9 +220,6 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             });
 
             model.data.modal_open = false;
-        }
-        Msg::RemoveRoute(route_id) => {
-            model.data.routes.shift_remove(&route_id);
         }
 
         Msg::StartRouteEdit(route_id) => {
