@@ -562,22 +562,17 @@ fn view_modal(
 // ------ main ------
 
 fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
-    section![
-        routes
-            .iter()
-            .filter(|(_k, v)| !v.retired)
-            .group_by(|(_k, v)| v.section.to_owned())
-            .into_iter()
-            .map(|(_k, group)| {
-                let route_ids = group.into_iter().map(|(k, _v)| k.clone()).collect();
+    section![routes
+        .iter()
+        .filter(|(_k, v)| !v.retired)
+        .group_by(|(_k, v)| v.section.to_owned())
+        .into_iter()
+        .map(|(_k, group)| {
+            let route_ids = group.into_iter().map(|(k, _v)| k.clone()).collect();
 
-                div![
-                    class!["main card"],
-                    div![view_routes(routes, route_ids)]
-                ]
-            })
-            .collect::<Vec<Node<Msg>>>()
-    ]
+            div![class!["main card"], div![view_routes(routes, route_ids)]]
+        })
+        .collect::<Vec<Node<Msg>>>()]
 }
 
 fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> Node<Msg> {
@@ -589,7 +584,7 @@ fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> No
             .iter()
             .filter_map(|route_id| {
                 if let Some(route) = routes.get(route_id) {
-                    Some(view_route(route_id, route, &time,))
+                    Some(view_route(route_id, route, &time))
                 } else {
                     None
                 }
