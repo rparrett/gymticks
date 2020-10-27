@@ -32,13 +32,18 @@ type RouteId = Uuid;
 // ------ Model ------
 
 struct Model {
+    persisted: PersistedData,
     data: Data,
 }
 
 #[derive(Default, Serialize, Deserialize)]
-struct Data {
+struct PersistedData {
     routes: IndexMap<RouteId, Route>,
     settings: Settings,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+struct Data {
     new_route_title: String,
     editing_route: Option<RouteId>,
     chosen_color: String,
@@ -89,30 +94,24 @@ struct EditingRoute {
 }
 
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
-    let mut data: Data = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
+    let mut persisted: PersistedData = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
 
-    data.settings = Settings {
+    persisted.settings = Settings {
         colors: Color::defaults(),
         sections: Section::defaults(),
         grades: Grade::defaults(),
     };
 
-    // TODO unwrap_or with default values instead of this nonsense?
-    if data.chosen_color.is_empty() {
-        data.chosen_color = data.settings.colors.iter().next().unwrap().0.to_string();
-    }
-    if data.chosen_section.is_empty() {
-        data.chosen_section = data.settings.sections.iter().next().unwrap().0.to_string();
-    }
-    if data.chosen_grade.is_empty() {
-        data.chosen_grade = data.settings.grades.iter().next().unwrap().0.to_string();
-    }
+    let data = Data {
+        chosen_color: persisted.settings.colors.iter().next().unwrap().0.to_string(),
+        chosen_section: persisted.settings.sections.iter().next().unwrap().0.to_string(),
+        chosen_grade: persisted.settings.grades.iter().next().unwrap().0.to_string(),
+        new_route_title: "".to_string(),
+        editing_route: None,
+        modal_open: false
+    };
 
-    // TODO actually this, and the stuff above don't really need to be persisted at all.
-    // we should probably keep a separate PersistantData and Data.
-    data.modal_open = false;
-
-    Model { data }
+    Model { persisted, data }
 }
 
 // ------ ------
@@ -154,7 +153,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::CreateNewRoute(tick_type) => {
             let id = RouteId::new_v4();
 
-            model.data.routes.insert(
+            model.persisted.routes.insert(
                 id,
                 Route {
                     title: mem::take(&mut model.data.new_route_title),
@@ -171,9 +170,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 orders.send_msg(Msg::AddTickToRoute(id, tick_type));
             };
 
-            let settings = &model.data.settings;
+            let settings = &model.persisted.settings;
 
-            model.data.routes.sort_by(|_ak, av, _bk, bv| {
+            model.persisted.routes.sort_by(|_ak, av, _bk, bv| {
                 return settings
                     .sections
                     .get(&av.section)
@@ -200,7 +199,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
 
         Msg::StartRouteEdit(route_id) => {
-            if let Some(route) = model.data.routes.get(&route_id) {
+            if let Some(route) = model.persisted.routes.get(&route_id) {
                 model.data.editing_route = Some(route_id);
                 model.data.chosen_color = route.color.clone();
                 model.data.chosen_section = route.section.clone();
@@ -212,16 +211,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::SaveEditingRoute => {
             if let Some(editing_route) = model.data.editing_route.take() {
-                if let Some(route) = model.data.routes.get_mut(&editing_route) {
+                if let Some(route) = model.persisted.routes.get_mut(&editing_route) {
                     route.title = mem::take(&mut model.data.new_route_title);
                     route.color = model.data.chosen_color.clone();
                     route.section = model.data.chosen_section.clone();
                     route.grade = model.data.chosen_grade.clone();
 
                     // TODO: this code is duplicated.
-                    let settings = &model.data.settings;
+                    let settings = &model.persisted.settings;
 
-                    model.data.routes.sort_by(|_ak, av, _bk, bv| {
+                    model.persisted.routes.sort_by(|_ak, av, _bk, bv| {
                         return settings
                             .sections
                             .get(&av.section)
@@ -251,7 +250,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::RetireEditingRoute => {
             if let Some(editing_route) = model.data.editing_route.take() {
-                if let Some(route) = model.data.routes.get_mut(&editing_route) {
+                if let Some(route) = model.persisted.routes.get_mut(&editing_route) {
                     route.retired = true;
                 }
             }
@@ -261,7 +260,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
 
         Msg::AddTickToRoute(route_id, typ) => {
-            if let Some(route) = model.data.routes.get_mut(&route_id) {
+            if let Some(route) = model.persisted.routes.get_mut(&route_id) {
                 let timestamp = unixTimestamp();
                 route.ticks.push(Tick { typ, timestamp });
             }
@@ -291,7 +290,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
 
         Msg::ExportData() => {
-            if let Ok(json) = serde_json::to_string(&model.data) {
+            if let Ok(json) = serde_json::to_string(&model.persisted) {
                 exportData(json);
             }
         }
@@ -303,7 +302,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::ImportData(json) => {
             // TODO fail less silently
             if let Ok(new_data) = serde_json::from_str(&json) {
-                mem::replace(&mut model.data, new_data);
+                mem::replace(&mut model.persisted, new_data);
             }
         }
 
@@ -311,7 +310,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 
     // Save data into LocalStorage. It should be optimized in a real-world application.
-    LocalStorage::insert(STORAGE_KEY, &model.data).expect("save data to LocalStorage");
+    LocalStorage::insert(STORAGE_KEY, &model.persisted).expect("save persisted to LocalStorage");
 }
 
 // ------ ------
@@ -320,6 +319,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
 fn view(model: &Model) -> Vec<Node<Msg>> {
     let data = &model.data;
+    let persisted = &model.persisted;
+
     nodes![
         header![
             C!["navbar"],
@@ -339,13 +340,13 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
                 ]
             ]
         ],
-        if data.routes.is_empty() {
+        if persisted.routes.is_empty() {
             vec![]
         } else {
             vec![div![
                 C!["container grid-sm"],
-                view_main(&data.routes),
-                view_aggregate(&data.routes),
+                view_main(&persisted.routes),
+                view_aggregate(&persisted.routes),
             ]]
         },
         view_footer(),
@@ -356,9 +357,9 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             &data.chosen_color,
             &data.chosen_section,
             &data.chosen_grade,
-            &data.settings.colors,
-            &data.settings.sections,
-            &data.settings.grades,
+            &persisted.settings.colors,
+            &persisted.settings.sections,
+            &persisted.settings.grades,
         ),
     ]
 }
