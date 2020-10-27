@@ -637,19 +637,19 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
         format!(
             "{} att (att {})",
             num_attempts,
-            util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
+            util::time_diff_in_words(Utc.timestamp(last_attempt, 0), *time)
         )
     } else if last_ascent >= last_attempt {
         format!(
             "{} att (snd {})",
             attempts_since_ascent,
-            util::time_diff_in_words(Utc.timestamp(last_ascent.into(), 0), *time)
+            util::time_diff_in_words(Utc.timestamp(last_ascent, 0), *time)
         )
     } else {
         format!(
             "{} att (att {})",
             attempts_since_ascent,
-            util::time_diff_in_words(Utc.timestamp(last_attempt.into(), 0), *time)
+            util::time_diff_in_words(Utc.timestamp(last_attempt, 0), *time)
         )
     };
 
