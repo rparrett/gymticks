@@ -2,7 +2,7 @@
 extern crate indexmap;
 extern crate serde_json;
 
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Local, TimeZone, Timelike, Utc};
 use enclose::enc;
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -76,7 +76,7 @@ struct Route {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Tick {
     typ: TickType,
-    timestamp: i32,
+    timestamp: i64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -261,7 +261,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
         Msg::AddTickToRoute(route_id, typ) => {
             if let Some(route) = model.persisted.routes.get_mut(&route_id) {
-                let timestamp = unixTimestamp();
+                let timestamp = Utc::now().timestamp();
                 route.ticks.push(Tick { typ, timestamp });
             }
         }
@@ -550,7 +550,7 @@ fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
 }
 
 fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> Node<Msg> {
-    let time = Utc.timestamp(unixTimestamp().into(), 0);
+    let time = Utc::now();
 
     ul![
         C!["route-list"],
@@ -678,7 +678,14 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
 }
 
 fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
-    let midnight = midnight();
+    let midnight = Local::now()
+        .with_hour(0)
+        .unwrap()
+        .with_minute(0)
+        .unwrap()
+        .with_second(0)
+        .unwrap()
+        .timestamp();
 
     let mut today = 0;
     let mut total = 0;
@@ -752,8 +759,6 @@ fn view_footer() -> Node<Msg> {
 
 #[wasm_bindgen]
 extern "C" {
-    fn unixTimestamp() -> i32;
-    fn midnight() -> i32;
     fn exportData(data: String);
     fn startImportData();
 }
