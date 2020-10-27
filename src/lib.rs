@@ -194,7 +194,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             let settings = &model.persisted.settings;
 
             model.persisted.routes.sort_by(|_ak, av, _bk, bv| {
-                return settings
+                settings
                     .sections
                     .get(&av.section)
                     .map_or(0i32, |s| s.sort)
@@ -213,7 +213,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                             .map_or(0i32, |s| s.sort)
                             .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort)),
                     )
-                    .then(av.title.cmp(&bv.title));
+                    .then(av.title.cmp(&bv.title))
             });
 
             model.data.modal_open = false;
@@ -242,7 +242,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                     let settings = &model.persisted.settings;
 
                     model.persisted.routes.sort_by(|_ak, av, _bk, bv| {
-                        return settings
+                        settings
                             .sections
                             .get(&av.section)
                             .map_or(0i32, |s| s.sort)
@@ -261,7 +261,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                                     .map_or(0i32, |s| s.sort)
                                     .cmp(&settings.grades.get(&bv.grade).map_or(0i32, |s| s.sort)),
                             )
-                            .then(av.title.cmp(&bv.title));
+                            .then(av.title.cmp(&bv.title))
                     });
                 }
             }
@@ -391,9 +391,9 @@ fn view_modal(
     modal_open: &bool,
     new_route_title: &str,
     editing_route: &Option<RouteId>,
-    chosen_color: &String,
-    chosen_section: &String,
-    chosen_grade: &String,
+    chosen_color: &str,
+    chosen_section: &str,
+    chosen_grade: &str,
     colors: &IndexMap<String, Color>,
     sections: &IndexMap<String, Section>,
     grades: &IndexMap<String, Grade>,
@@ -413,7 +413,7 @@ fn view_modal(
                     div![div![
                         C!["description-and-flag"],
                         div![
-                            C![chosen_color.as_str(), "color-flag"],
+                            C![chosen_color, "color-flag"],
                             div![chosen_section],
                             div![chosen_grade],
                         ],
@@ -563,7 +563,7 @@ fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
         .group_by(|(_k, v)| v.section.to_owned())
         .into_iter()
         .map(|(_k, group)| {
-            let route_ids = group.into_iter().map(|(k, _v)| k.clone()).collect();
+            let route_ids = group.into_iter().map(|(k, _v)| *k).collect();
 
             div![C!["main card"], div![view_routes(routes, route_ids)]]
         })
