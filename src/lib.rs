@@ -280,6 +280,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
 
         Msg::OpenModal() => {
+            model.data.editing_route = None;
+            model.data.new_route_title = "".to_string();
+
             model.data.modal_open = true;
         }
 
