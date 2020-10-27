@@ -13,6 +13,5 @@ This is a very specialized Todo app for keeping track of routes completed in a c
 - [ ] display more exciting aggregate information about ticks
 - [ ] some sort of animation when modifying, sending, or adding a route
 - [ ] undo button
-- [ ] separate persistent and non-persistent app state
 - [ ] move import/export somewhere else?
 - [ ] give exported file a better filename
