@@ -103,12 +103,33 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     };
 
     let data = Data {
-        chosen_color: persisted.settings.colors.iter().next().unwrap().0.to_string(),
-        chosen_section: persisted.settings.sections.iter().next().unwrap().0.to_string(),
-        chosen_grade: persisted.settings.grades.iter().next().unwrap().0.to_string(),
+        chosen_color: persisted
+            .settings
+            .colors
+            .iter()
+            .next()
+            .unwrap()
+            .0
+            .to_string(),
+        chosen_section: persisted
+            .settings
+            .sections
+            .iter()
+            .next()
+            .unwrap()
+            .0
+            .to_string(),
+        chosen_grade: persisted
+            .settings
+            .grades
+            .iter()
+            .next()
+            .unwrap()
+            .0
+            .to_string(),
         new_route_title: "".to_string(),
         editing_route: None,
-        modal_open: false
+        modal_open: false,
     };
 
     Model { persisted, data }
