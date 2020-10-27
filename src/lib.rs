@@ -7,7 +7,6 @@ use enclose::enc;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use seed::{
-    browser::service::storage::{self, Storage},
     prelude::*,
     *,
 };
@@ -37,7 +36,6 @@ type RouteId = Uuid;
 
 struct Model {
     data: Data,
-    services: Services,
 }
 
 #[derive(Default, Serialize, Deserialize)]
@@ -57,10 +55,6 @@ struct Settings {
     grades: IndexMap<String, Grade>,
     sections: IndexMap<String, Section>,
     colors: IndexMap<String, Color>,
-}
-
-struct Services {
-    local_storage: Storage,
 }
 
 // ------ Route ------
@@ -97,19 +91,8 @@ struct EditingRoute {
     title: String,
 }
 
-fn before_mount(_url: Url) -> BeforeMount {
-    BeforeMount::new()
-        .mount_point("app")
-        .mount_type(MountType::Takeover)
-}
-
-// ------ ------
-//  After Mount
-// ------ ------
-
-fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
-    let local_storage = storage::get_storage().expect("get `LocalStorage`");
-    let mut data: Data = storage::load_data(&local_storage, STORAGE_KEY).unwrap_or_default();
+fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+    let mut data: Data = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
 
     data.settings = Settings {
         colors: Color::defaults(),
@@ -132,10 +115,9 @@ fn after_mount(_: Url, _: &mut impl Orders<Msg>) -> AfterMount<Model> {
     // we should probably keep a separate PersistantData and Data.
     data.modal_open = false;
 
-    AfterMount::new(Model {
+    Model {
         data,
-        services: Services { local_storage },
-    })
+    }
 }
 
 // ------ ------
@@ -331,7 +313,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     }
 
     // Save data into LocalStorage. It should be optimized in a real-world application.
-    storage::store_data(&model.services.local_storage, STORAGE_KEY, &model.data);
+    LocalStorage::insert(STORAGE_KEY, &model.data).expect("save data to LocalStorage");
 }
 
 // ------ ------
@@ -342,20 +324,20 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
     let data = &model.data;
     nodes![
         header![
-            class!["navbar"],
+            C!["navbar"],
             section![
-                class!["navbar-section"],
+                C!["navbar-section"],
                 a![attrs! {
                     At::Href => "#"
                 }],
             ],
-            section![class!["navbar-center"], "gymticks"],
+            section![C!["navbar-center"], "gymticks"],
             section![
-                class!["navbar-section"],
+                C!["navbar-section"],
                 button![
-                    class!["btn btn-primary"],
+                    C!["btn btn-primary"],
                     ev(Ev::Click, move |_| Msg::OpenModal()),
-                    i![class!["icon", "icon-plus"]]
+                    i![C!["icon", "icon-plus"]]
                 ]
             ]
         ],
@@ -363,7 +345,7 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             vec![]
         } else {
             vec![div![
-                class!["container grid-sm"],
+                C!["container grid-sm"],
                 view_main(&data.routes),
                 view_aggregate(&data.routes),
             ]]
@@ -397,26 +379,26 @@ fn view_modal(
     grades: &IndexMap<String, Grade>,
 ) -> Node<Msg> {
     div![
-        class!["modal", "active" => modal_open],
+        C!["modal", IF!(*modal_open => "active")],
         a![
-            class!["modal-overlay"],
+            C!["modal-overlay"],
             ev(Ev::Click, move |_| Msg::CloseModal())
         ],
         div![
-            class!["modal-container"],
+            C!["modal-container"],
             div![
-                class!["modal-body"],
+                C!["modal-body"],
                 div![
-                    class!["content"],
+                    C!["content"],
                     div![div![
-                        class!["description-and-flag"],
+                        C!["description-and-flag"],
                         div![
-                            class![chosen_color.as_ref(), "color-flag"],
+                            C![chosen_color.as_str(), "color-flag"],
                             div![chosen_section],
                             div![chosen_grade],
                         ],
                         input![
-                            class!["form-input"],
+                            C!["form-input"],
                             attrs! {
                                 At::Placeholder => "Description of route";
                                 At::AutoFocus => true.as_at_value();
@@ -433,40 +415,43 @@ fn view_modal(
                         ],
                     ],],
                     div![
-                        class!["color-chooser",],
+                        C!["color-chooser",],
                         colors
                             .iter()
                             .map(|(key, _color)| {
                                 div![
-                                    class![
-                                       key.as_ref(),
-                                       "active" => chosen_color == key
+                                    C![
+                                       key.as_str(),
+                                       IF!(chosen_color == key => "active"),
                                     ],
-                                    simple_ev(Ev::Click, Msg::ChooseColor(key.to_string()))
+                                    ev(
+                                        Ev::Click,
+                                        enc!((key) move |_| Msg::ChooseColor(key.to_string()))
+                                    )
                                 ]
                             })
                             .collect::<Vec<Node<Msg>>>()
                     ],
                     div![
-                        class!["section-chooser",],
+                        C!["section-chooser",],
                         sections
                             .iter()
                             .group_by(|(_k, v)| v.group.to_owned())
                             .into_iter()
                             .map(|(_key, group)| {
                                 div![
-                                    class!["section-chooser-row"],
+                                    C!["section-chooser-row"],
                                     group
                                         .map(|(key, _section)| {
                                             div![
-                                                class![
-                                                   key.as_ref(),
-                                                   "active" => chosen_section == key,
-                                                   "section-chooser-item"
+                                                C![
+                                                   key.as_str(),
+                                                   "section-chooser-item",
+                                                   IF!(chosen_section == key => "active"),
                                                 ],
-                                                simple_ev(
+                                                ev(
                                                     Ev::Click,
-                                                    Msg::ChooseSection(key.to_string())
+                                                    enc!((key) move |_| Msg::ChooseSection(key.to_string()))
                                                 ),
                                                 key
                                             ]
@@ -477,25 +462,25 @@ fn view_modal(
                             .collect::<Vec<Node<Msg>>>(),
                     ],
                     div![
-                        class!["section-chooser",],
+                        C!["section-chooser",],
                         grades
                             .iter()
                             .group_by(|(_k, v)| v.group.to_owned())
                             .into_iter()
                             .map(|(_key, group)| {
                                 div![
-                                    class!["section-chooser-row"],
+                                    C!["section-chooser-row"],
                                     group
                                         .map(|(key, _grade)| {
                                             div![
-                                                class![
-                                                   key.as_ref(),
-                                                   "active" => chosen_grade == key,
-                                                   "section-chooser-item"
+                                                C![
+                                                   key.as_str(),
+                                                   "section-chooser-item",
+                                                   IF!(chosen_grade == key => "active"),
                                                 ],
-                                                simple_ev(
+                                                ev(
                                                     Ev::Click,
-                                                    Msg::ChooseGrade(key.to_string())
+                                                    enc!((key) move |_| Msg::ChooseGrade(key.to_string()))
                                                 ),
                                                 key
                                             ]
@@ -508,37 +493,37 @@ fn view_modal(
                 ],
                 if editing_route.is_some() {
                     div![
-                        class!["modal-buttons"],
+                        C!["modal-buttons"],
                         button![
-                            class!["btn btn-primary new-route-button"],
-                            simple_ev(Ev::Click, Msg::SaveEditingRoute),
+                            C!["btn btn-primary new-route-button"],
+                            ev(Ev::Click, |_| Msg::SaveEditingRoute),
                             "Save Changes"
                         ],
                         button![
-                            class!["btn btn-error new-route-button"],
-                            simple_ev(Ev::Click, Msg::RetireEditingRoute),
+                            C!["btn btn-error new-route-button"],
+                            ev(Ev::Click, |_| Msg::RetireEditingRoute),
                             "Retire Route"
                         ],
                     ]
                 } else {
                     div![
-                        class!["modal-buttons"],
+                        C!["modal-buttons"],
                         button![
-                            class!["btn btn-primary new-route-button"],
+                            C!["btn btn-primary new-route-button"],
                             ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(
                                 TickType::Ascent
                             ))),
                             "SND"
                         ],
                         button![
-                            class!["btn new-route-button"],
+                            C!["btn new-route-button"],
                             ev(Ev::Click, move |_| Msg::CreateNewRoute(Some(
                                 TickType::Attempt
                             ))),
                             "ATT"
                         ],
                         button![
-                            class!["btn btn-secondary new-route-button"],
+                            C!["btn btn-secondary new-route-button"],
                             ev(Ev::Click, move |_| Msg::CreateNewRoute(None)),
                             "Add Without Tick"
                         ],
@@ -560,7 +545,7 @@ fn view_main(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
         .map(|(_k, group)| {
             let route_ids = group.into_iter().map(|(k, _v)| k.clone()).collect();
 
-            div![class!["main card"], div![view_routes(routes, route_ids)]]
+            div![C!["main card"], div![view_routes(routes, route_ids)]]
         })
         .collect::<Vec<Node<Msg>>>()]
 }
@@ -569,7 +554,7 @@ fn view_routes(routes: &IndexMap<RouteId, Route>, route_ids: Vec<RouteId>) -> No
     let time = Utc.timestamp(unixTimestamp().into(), 0);
 
     ul![
-        class!["route-list"],
+        C!["route-list"],
         route_ids
             .iter()
             .filter_map(|route_id| {
@@ -649,22 +634,22 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
     };
 
     li![
-        class![
-           "completed" => num_ascents > 0
+        C![
+            IF!(num_ascents > 0 => "completed")
         ],
         div![
-            class!["view"],
+            C!["view"],
             div![
-                class![route.color.as_ref(), "color-flag"],
-                div![route.section],
-                div![route.grade],
+                C![route.color.as_str(), "color-flag"],
+                div![route.section.as_str()],
+                div![route.grade.as_str()],
                 ev(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::StartRouteEdit(route_id))
                 ),
             ],
             button![
-                class!["tick-button btn btn-primary"],
+                C!["tick-button btn btn-primary"],
                 ev(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Ascent))
@@ -672,7 +657,7 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
                 "SND"
             ],
             button![
-                class!["tick-button btn"],
+                C!["tick-button btn"],
                 ev(
                     Ev::Click,
                     enc!((route_id) move |_| Msg::AddTickToRoute(route_id, TickType::Attempt))
@@ -684,12 +669,12 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
                     Ev::DblClick,
                     enc!((route_id) move |_| Msg::StartRouteEdit(route_id))
                 ),
-                route.title
+                route.title.as_str()
             ],
             div![
-                class!["stats"],
-                div![class!["stats-ascents"], ascent_text,],
-                div![class!["stats-attempts"], att_text,],
+                C!["stats"],
+                div![C!["stats-ascents"], ascent_text,],
+                div![C!["stats-attempts"], att_text,],
             ]
         ],
     ]
@@ -715,13 +700,13 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
     }
 
     div![
-        class!["aggregate", "card"],
+        C!["aggregate", "card"],
         div![
-            class!["card-header"],
-            div![class!["h5", "card-title"], "Stats"]
+            C!["card-header"],
+            div![C!["h5", "card-title"], "Stats"]
         ],
         div![
-            class!["card-body"],
+            C!["card-body"],
             table![
                 tr![td!["Sends Today"], td![format!("{}", today)]],
                 tr![td!["Sends Total"], td![format!("{}", total)]]
@@ -734,7 +719,7 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
 
 fn view_footer() -> Node<Msg> {
     footer![
-        class!["footer", "grid-sm", "info"],
+        C!["footer", "grid-sm", "info"],
         p![
             "created by ",
             a![
@@ -785,10 +770,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn start() -> Box<[JsValue]> {
-    let app = App::builder(update, view)
-        .before_mount(before_mount)
-        .after_mount(after_mount)
-        .build_and_start();
+    let app = App::start("app", init, update, view);
 
     create_closures_for_js(&app)
 }
