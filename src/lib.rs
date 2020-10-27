@@ -446,7 +446,7 @@ fn view_modal(
                                     ],
                                     ev(
                                         Ev::Click,
-                                        enc!((key) move |_| Msg::ChooseColor(key.to_string()))
+                                        enc!((key) move |_| Msg::ChooseColor(key))
                                     )
                                 ]
                             })
@@ -471,7 +471,7 @@ fn view_modal(
                                                 ],
                                                 ev(
                                                     Ev::Click,
-                                                    enc!((key) move |_| Msg::ChooseSection(key.to_string()))
+                                                    enc!((key) move |_| Msg::ChooseSection(key))
                                                 ),
                                                 key
                                             ]
@@ -500,7 +500,7 @@ fn view_modal(
                                                 ],
                                                 ev(
                                                     Ev::Click,
-                                                    enc!((key) move |_| Msg::ChooseGrade(key.to_string()))
+                                                    enc!((key) move |_| Msg::ChooseGrade(key))
                                                 ),
                                                 key
                                             ]
