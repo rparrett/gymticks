@@ -4,6 +4,10 @@ Adapted from the [seed-rs 0.6 todomvc example](https://github.com/seed-rs/seed/t
 
 This is a very specialized Todo app for keeping track of routes completed in a climbing gym
 
+## Demo
+
+There may be a demo running [here](https://gymticks.robparrett.com).
+
 ## TODO
 
 - [ ] flag a route (as a project)?
