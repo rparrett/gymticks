@@ -6,10 +6,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use enclose::enc;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use seed::{
-    prelude::*,
-    *,
-};
+use seed::{prelude::*, *};
 use serde::{Deserialize, Serialize};
 use std::mem;
 use uuid::Uuid;
@@ -115,9 +112,7 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
     // we should probably keep a separate PersistantData and Data.
     data.modal_open = false;
 
-    Model {
-        data,
-    }
+    Model { data }
 }
 
 // ------ ------
@@ -634,9 +629,7 @@ fn view_route(route_id: &RouteId, route: &Route, time: &DateTime<Utc>) -> Node<M
     };
 
     li![
-        C![
-            IF!(num_ascents > 0 => "completed")
-        ],
+        C![IF!(num_ascents > 0 => "completed")],
         div![
             C!["view"],
             div![
@@ -701,10 +694,7 @@ fn view_aggregate(routes: &IndexMap<RouteId, Route>) -> Node<Msg> {
 
     div![
         C!["aggregate", "card"],
-        div![
-            C!["card-header"],
-            div![C!["h5", "card-title"], "Stats"]
-        ],
+        div![C!["card-header"], div![C!["h5", "card-title"], "Stats"]],
         div![
             C!["card-body"],
             table![
