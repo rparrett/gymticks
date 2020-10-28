@@ -25,12 +25,6 @@ const STORAGE_KEY: &str = "gymticks-11";
 
 type RouteId = Uuid;
 
-// ------ ------
-//     Model
-// ------ ------
-
-// ------ Model ------
-
 struct Model {
     persisted: PersistedData,
     data: Data,
@@ -69,8 +63,6 @@ impl Default for Settings {
     }
 }
 
-// ------ Route ------
-
 #[derive(Serialize, Deserialize, Debug)]
 struct Route {
     title: String,
@@ -82,7 +74,6 @@ struct Route {
     retired: bool,
 }
 
-// ------ Tick -----
 #[derive(Serialize, Deserialize, Clone, Debug)]
 struct Tick {
     typ: TickType,
@@ -94,8 +85,6 @@ enum TickType {
     Ascent = 0x00,
     Attempt = 0x01,
 }
-
-// ------ EditingRoute ------
 
 #[derive(Serialize, Deserialize)]
 struct EditingRoute {
