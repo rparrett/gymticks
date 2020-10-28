@@ -12,7 +12,7 @@ impl Section {
     pub fn defaults() -> IndexMap<String, Section> {
         return indexmap! {
             "AB1".into() => Section { group: "A".into(), label: "AB1".into(), sort: 1 },
-            "AB2".into() => Section { group: "A".into(), label: "AB2".into(), sort: 2 },
+            "AB2".into() => Section { group: "A".into(), label: "MAP".into(), sort: 2 },
             "AB3".into() => Section { group: "A".into(), label: "AB3".into(), sort: 3 },
             "AB4".into() => Section { group: "A".into(), label: "AB4".into(), sort: 4 },
             "AB5".into() => Section { group: "A".into(), label: "AB5".into(), sort: 5 },

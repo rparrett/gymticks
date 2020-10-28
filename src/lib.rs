@@ -52,11 +52,21 @@ struct Data {
     modal_open: bool,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Settings {
     grades: IndexMap<String, Grade>,
     sections: IndexMap<String, Section>,
     colors: IndexMap<String, Color>,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            colors: Color::defaults(),
+            sections: Section::defaults(),
+            grades: Grade::defaults()
+        }
+    }
 }
 
 // ------ Route ------
@@ -94,13 +104,10 @@ struct EditingRoute {
 }
 
 fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
-    let mut persisted: PersistedData = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
+    // TODO we should use defaults if the data is not present, but show some sort of
+    // error message if the data is mangled.
 
-    persisted.settings = Settings {
-        colors: Color::defaults(),
-        sections: Section::defaults(),
-        grades: Grade::defaults(),
-    };
+    let persisted: PersistedData = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
 
     let data = Data {
         chosen_color: persisted
