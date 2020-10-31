@@ -20,11 +20,13 @@ indexmap = { version = "^1.6.0", features = ["serde-1"] }
 enclose = "1.1.8"
 chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 itertools = "0.9"
+apply = { version = "0.3.0" }
 
 [dependencies.web-sys]
 version = "0.3.32"
 features = [
     "HtmlInputElement",
+    "ServiceWorkerContainer"
 ]
 
 [profile.release]

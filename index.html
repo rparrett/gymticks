@@ -3,14 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#4b48d6" />
 
     <title>gymticks</title>
 
-    <link rel="stylesheet" href="/public/index.css" />
+    <link rel="stylesheet" href="/public/index.css?2" />
     <link rel="stylesheet" href="/public/spectre.min.css" />
     <link rel="stylesheet" href="/public/spectre-icons.min.css" />
 
     <link rel="apple-touch-icon" href="/public/apple-touch-icon.png" />
+    
+    <link rel="manifest" href="/public/manifest.webmanifest?5">
 
     <script type="text/javascript" src="/public/FileSaver.min.js"></script>
 
@@ -21,9 +24,31 @@
     <section id="app" class="routeapp">
         <div class="loading-container text-center">
             <div class="loading loading-lg"></div>
+            <noscript>
+                This thing's just going to keep spinning unless you enable javascript.
+            </noscript>
         </div>
     </section>
+    <script>
+        function showInstallPromotion() {
+            document.body.innerText = '!!!';
+            console.log('showInstall');
+        }
+    </script>
+    <script>
+        let deferredPrompt;
 
+            console.log('setup');
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('beforeinstallprompt');
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault();
+          // Stash the event so it can be triggered later.
+          deferredPrompt = e;
+          // Update UI notify the user they can install the PWA
+          showInstallPromotion();
+        });
+    </script>
     <script type="module">
         window.exportData = (data) => {
             var blob = new Blob([data], { type: "text/json;charset=utf-8" });
@@ -48,7 +73,7 @@
       // https://rustwasm.github.io/docs/wasm-bindgen/examples/without-a-bundler.html
       import init from '/pkg/package.js';
       import { start} from '/pkg/package.js';
-      init('/pkg/package_bg.wasm?6').then(() => {
+      init('/pkg/package_bg.wasm').then(() => {
         const [import_data] = start();
         const app = {
             import_data

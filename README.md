@@ -4,6 +4,8 @@ This is a very specialized Todo app for keeping track of routes completed ("sent
 
 Originally adapted from the [seed-rs 0.6 todomvc example](https://github.com/seed-rs/seed/tree/0.6.0/examples/todomvc).
 
+This will likely be abandoned in favor of a react native app because progressive web apps do not seem to provide a good user experience at this time. 
+
 ## Demo
 
 There may be a demo running [here](https://gymticks.robparrett.com).
