@@ -6,11 +6,13 @@
 
     <title>gymticks</title>
 
-    <link rel="stylesheet" href="/public/index.css" />
+    <link rel="stylesheet" href="/public/index.css?2" />
     <link rel="stylesheet" href="/public/spectre.min.css" />
     <link rel="stylesheet" href="/public/spectre-icons.min.css" />
 
     <link rel="apple-touch-icon" href="/public/apple-touch-icon.png" />
+    
+    <link rel="manifest" href="/public/manifest.webmanifest?4">
 
     <script type="text/javascript" src="/public/FileSaver.min.js"></script>
 
@@ -23,7 +25,22 @@
             <div class="loading loading-lg"></div>
         </div>
     </section>
+    <script>
+        let deferredPrompt;
 
+        function showInstallPromotion() {
+            document.body.innerText = 'YARP';
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault();
+          // Stash the event so it can be triggered later.
+          deferredPrompt = e;
+          // Update UI notify the user they can install the PWA
+          showInstallPromotion();
+        });        
+    </script>
     <script type="module">
         window.exportData = (data) => {
             var blob = new Blob([data], { type: "text/json;charset=utf-8" });
@@ -48,7 +65,7 @@
       // https://rustwasm.github.io/docs/wasm-bindgen/examples/without-a-bundler.html
       import init from '/pkg/package.js';
       import { start} from '/pkg/package.js';
-      init('/pkg/package_bg.wasm?6').then(() => {
+      init('/pkg/package_bg.wasm?13').then(() => {
         const [import_data] = start();
         const app = {
             import_data

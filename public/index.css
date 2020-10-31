@@ -260,3 +260,40 @@ header.navbar {
 .import-file-input {
     display: none;
 }
+
+.pwa-ad {
+    position: fixed;
+    bottom: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.pwa-ad .pwa-ad-body {
+    text-align: center;
+    background-color: #333;
+    padding: 5px;
+    align-self: stretch;
+    color: white; 
+}
+
+.pwa-ad.pwa-ad-iphone .pwa-ad-triangle {
+    width: 0;
+    height: 0;
+    border-left: 0.8em solid transparent;
+    border-right: 0.8em solid transparent;
+    border-top: 0.8em solid #333;
+}
+
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}

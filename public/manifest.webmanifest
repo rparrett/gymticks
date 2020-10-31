@@ -1,0 +1,13 @@
+{
+    "name": "gymticks",
+    "short_name": "gymticks",
+    "description": "gymticks",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/pwa",
+    "icons": [{
+        "src": "apple-touch-icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+    }]
+}

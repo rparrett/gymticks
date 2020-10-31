@@ -10,6 +10,7 @@ use seed::{prelude::*, *};
 use serde::{Deserialize, Serialize};
 use std::mem;
 use uuid::Uuid;
+use apply::Apply;
 
 mod color;
 mod grade;
@@ -44,6 +45,7 @@ struct Data {
     chosen_section: String,
     chosen_grade: String,
     modal_open: bool,
+    pwa_ad: bool
 }
 
 #[derive(Serialize, Deserialize)]
@@ -92,11 +94,28 @@ struct EditingRoute {
     title: String,
 }
 
-fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
+fn init(mut url: Url, orders: &mut impl Orders<Msg>) -> Model {
     // TODO we should use defaults if the data is not present, but show some sort of
     // error message if the data is mangled.
 
+    let worker_container = window().navigator().service_worker();
+    orders.perform_cmd(async move {
+        // I don't currently care if this succeeds or know
+        // why it would fail.
+        worker_container
+            .register("/public/service-worker.js")
+            .apply(JsFuture::from)
+            .await;
+        ()
+    });
+
     let persisted: PersistedData = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
+
+    let pwa_ad = if let Some("pwa") = url.next_path_part() {
+        false
+    } else {
+        true
+    };
 
     let data = Data {
         chosen_color: persisted
@@ -126,6 +145,7 @@ fn init(_: Url, _: &mut impl Orders<Msg>) -> Model {
         new_route_title: "".to_string(),
         editing_route: None,
         modal_open: false,
+        pwa_ad,
     };
 
     Model { persisted, data }
@@ -367,6 +387,7 @@ fn view(model: &Model) -> Vec<Node<Msg>> {
             ]]
         },
         view_footer(),
+        view_pwa_ad(data.pwa_ad),
         view_modal(
             &data.modal_open,
             &data.new_route_title,
@@ -772,6 +793,45 @@ fn view_footer() -> Node<Msg> {
             ]
         ]
     ]
+}
+
+fn view_pwa_ad(pwa_ad: bool) -> Node<Msg> {
+    let ua = window().navigator().user_agent().unwrap();
+    let iphone = ua.contains("iPhone OS");
+
+    let msg_one = if iphone {
+        "Tap the here and choose \"Add to Home Screen.\""
+    } else {
+        "Add this app to your Home Screen."
+    };
+
+    let msg_two = if iphone {
+        "Your iPhone will be less likely to delete your data that way."
+    } else {
+        "It's better that way!"
+    };
+
+    if pwa_ad {
+        div![
+            C!["pwa-ad",IF!(iphone => "pwa-ad-iphone")],
+            div![
+                C!["pwa-ad-body"],
+                msg_one,
+                br![],
+                small![
+                    msg_two
+                ]
+            ],
+            IF!(iphone => 
+                div![
+                    C!["pwa-ad-triangle"]
+                ]
+            )
+
+        ]
+    } else {
+        empty![]
+    }
 }
 
 #[wasm_bindgen]
